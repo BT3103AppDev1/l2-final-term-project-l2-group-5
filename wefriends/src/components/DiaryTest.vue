@@ -14,8 +14,8 @@
 
 <script>
 import firebaseApp from "../firebase.js";
-import { getFirestore } from "firebase/firestore";
-import { doc, setDoc } from "firebase/firestore";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js"
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js"
 const db = getFirestore(firebaseApp);
 
 export default {
