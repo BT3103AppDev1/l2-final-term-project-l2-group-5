@@ -2,8 +2,6 @@
   <div id="nav">
     <router-link to="/">Landing</router-link> |
     <router-link to="/home">Home</router-link> |
-    <router-link to="/login">Login</router-link> |
-    <router-link to="/signup">SignUp</router-link> |
     <router-link to="/forgot">Forgot</router-link> |
     <router-link to="/education">Education</router-link> |
     <router-link to="/diary">Diary</router-link> |
@@ -21,11 +19,12 @@ export default {
 </script>
 
 <style>
-#nav {
-  padding: 30px
+body {
+  font-family: 'Nunito Sans', sans-serif;
+  margin: 0;
+  padding: 0;
 }
-#nav a{
-  font-weight: bold;
-  color:midnightblue
+.router-link-active, .router-link-exact-active, a{
+  text-decoration: none;
 }
 </style>
