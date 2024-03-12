@@ -7,6 +7,7 @@
     <form @submit.prevent="register" class="register-child">
       <input type="email" placeholder="Email address..." v-model="email" />
       <input type="password" placeholder="Password..." v-model="password" />
+      <input type="password" placeholder="Confirm Password..." v-model="confirmPassword" />
       <button type="submit">Register</button>
     </form>
 
@@ -28,21 +29,31 @@ export default {
     return {
       email: '',
       password: '',
+      confirmPassword: '',
       registrationSuccess: false,
     };
   },
   methods: {
     register() {
+      if (this.password !== this.confirmPassword) {
+        alert('Passwords do not match!');
+        this.password = '';
+        this.confirmPassword = '';
+        return;
+      }
       createUserWithEmailAndPassword(auth, this.email, this.password)
         .then(() => {
           this.registrationSuccess = true;
           this.email = '';
           this.password = '';
-          this.$router.push('/');
+          this.confirmPassword = '';
         })
         .catch(error => {
           if (error.code === 'auth/email-already-in-use') {
             alert('Email is already in use. Please use a different email address.');
+            this.email = '';
+            this.password = '';
+            this.confirmPassword = '';
           } else {
             alert(error.message);
           }

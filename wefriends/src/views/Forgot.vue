@@ -36,7 +36,7 @@ export default {
             sendPasswordResetEmail(auth, this.email)
               .then(() => {
                 this.message =
-                  'If your email is registered with us, you will receive a password reset email. Please check your inbox.';
+                  'Reset email has been sent.';
               })
               .catch((error) => {
                 this.message =
