@@ -14,30 +14,41 @@
 </template>
 
 <script>
-import { getAuth, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
+import { getAuth, sendPasswordResetEmail, fetchSignInMethodsForEmail } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
 import firebaseApp from "@/firebase";
 
 const auth = getAuth(firebaseApp);
 
 export default {
-    data() {
-        return {
-            email: '',
-            message: '',
-        };
-    },
-    methods: {
+  data() {
+    return {
+      email: '',
+      message: '',
+    };
+  },
+  methods: {
     forgotPassword() {
-        sendPasswordResetEmail(auth, this.email)
-            .then(() => {
-                this.message = "If your email is registered with us, you will receive a password reset email. Please check your inbox.";
-            })
-            .catch((error) => {
-                this.message = "An error occurred. Please try again later.";
-            });
-    }
-}
-
-
-}
+      fetchSignInMethodsForEmail(auth, this.email)
+        .then((methods) => {
+          if (methods.length === 0) {
+            this.message = 'This email is not registered!';
+          } else {
+            sendPasswordResetEmail(auth, this.email)
+              .then(() => {
+                this.message =
+                  'Reset email has been sent.';
+              })
+              .catch((error) => {
+                this.message =
+                  'An error occurred. Please try again later.';
+              });
+          }
+        })
+        .catch((error) => {
+          console.error('Error checking email:', error.message);
+          this.message = 'An error occurred. Please try again later.';
+        });
+    },
+  },
+};
 </script>
