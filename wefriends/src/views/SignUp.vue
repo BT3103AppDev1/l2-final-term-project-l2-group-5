@@ -41,7 +41,11 @@ export default {
           this.$router.push('/');
         })
         .catch(error => {
-          alert(error.message);
+          if (error.code === 'auth/email-already-in-use') {
+            alert('Email is already in use. Please use a different email address.');
+          } else {
+            alert(error.message);
+          }
         });
     },
   },
