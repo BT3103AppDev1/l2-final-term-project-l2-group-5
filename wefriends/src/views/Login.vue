@@ -121,10 +121,11 @@
 
 <script>
 import firebaseApp from '@/firebase'
-import { getAuth, signInWithEmailAndPassword} from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
+import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence} from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
+import { useRouter } from 'vue-router';
 
 const auth = getAuth(firebaseApp);
-
+setPersistence(auth, browserLocalPersistence);
 
 export default {
   data() {
@@ -134,13 +135,16 @@ export default {
       errorMessage:'',
     };
   },
+  setup() {
+    const router = useRouter();
+    return { router };
+  },
   methods: {
     async submitForm() {
     try {
-        // Attempt login (Firebase example)
         await signInWithEmailAndPassword(auth, this.email, this.password);
-        this.errorMessage = ''; // Clear any previous error message on successful login
-        // Redirect or perform some action on successful login
+        this.errorMessage = '';
+        this.$router.push('/home');
     } catch (error) {
         if (error.code === 'auth/wrong-password') {
             this.errorMessage = 'Sign in unsuccessful. <br>The email or password you entered is not valid. Please try again.';
