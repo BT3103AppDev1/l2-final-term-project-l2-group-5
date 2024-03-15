@@ -16,6 +16,9 @@
             <div class="rounded-input">
                 <input type="password" v-model="password" placeholder="Password">
             </div>
+            <div v-if="errorMessage" class="error-message">
+                <span v-html="errorMessage"></span>
+            </div>
             <div id="forget-password">
                 <router-link to="/forgot">Forget Password?</router-link>
             </div>
@@ -76,6 +79,10 @@
     margin-right: 15%;
 }
 
+.error-message {
+    text-align: center;
+}
+
 #login-button {
     background-color: #436850;
     border: none; 
@@ -114,20 +121,34 @@
 
 <script>
 import firebaseApp from '@/firebase'
-import { getFirestore } from 'firebase/firestore'
-import { doc, setDoc } from 'firebase/firestore'
+import { getAuth, signInWithEmailAndPassword} from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
+
+const auth = getAuth(firebaseApp);
+
 
 export default {
-    data() {
-        return {
-            email: '',
-            password: '',
-        };
-    },
-    methods: {
-        submitForm() {
-            console.log("Form submitted with", this.email, this.password);
+  data() {
+    return {
+      email: '',
+      password: '',
+      errorMessage:'',
+    };
+  },
+  methods: {
+    async submitForm() {
+    try {
+        // Attempt login (Firebase example)
+        await signInWithEmailAndPassword(auth, this.email, this.password);
+        this.errorMessage = ''; // Clear any previous error message on successful login
+        // Redirect or perform some action on successful login
+    } catch (error) {
+        if (error.code === 'auth/wrong-password') {
+            this.errorMessage = 'Sign in unsuccessful. <br>The email or password you entered is not valid. Please try again.';
+        } else {
+            this.errorMessage = 'Sign in unsuccessful. <br>The email or password you entered is not valid. Please try again.';
         }
     }
+    }
+}
 }
 </script>
