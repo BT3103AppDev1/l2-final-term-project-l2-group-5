@@ -9,12 +9,48 @@
     <router-link to="/profile">Profile</router-link> |
     <router-link to="/forum">Forum</router-link>
   </div>
+  <!-- temp -->
+  <div>
+    <button @click="checkLoginStatus">
+      Check Login Status
+    </button>
+    <p v-if="isLoggedIn">You are logged in.</p>
+    <p v-else>You are not logged in.</p>
+  </div>
   <router-view/>
 </template>
 
 <script>
+import firebaseApp from "./firebase.js";
+import { getAuth } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
+
+const auth = getAuth(firebaseApp);
+
 export default {
-  name: 'App'
+  name: 'App',
+
+  data() {
+    return {
+      isLoggedIn: false
+    };
+  },
+  created() {
+    this.checkLoginStatus();
+  },
+  methods: {
+    checkLoginStatus() {
+      auth.onAuthStateChanged((user) => {
+        if (user) {
+          // User is signed in.
+          console.log(user)
+          this.isLoggedIn = true;
+        } else {
+          // No user is signed in.
+          this.isLoggedIn = false;
+        }
+      });
+    }
+  }
 }
 </script>
 
