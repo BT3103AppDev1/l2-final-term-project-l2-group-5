@@ -1,6 +1,9 @@
 <template>
     <div>
         <div class="nav-container">
+            <div class="nav-option">
+                <p>Profile placeholder</p>
+            </div>
             <div class="nav-option" @click="navigate('/home')">
                 <img src="@/assets/navbar/home.png" alt="home-icon">
                 <p>Home</p>
@@ -73,11 +76,6 @@ const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 
 export default {
-    data() {
-        return {
-            isLoggedIn: false
-        };
-    },
     setup() {
         const router = useRouter();
         return { router };

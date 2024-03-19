@@ -1,8 +1,11 @@
 <template>
     <div id="view">
         <Navbar id="navbar" />
-        <div id="content">
-            <h1>Profile</h1>
+        <div id="right-side">
+            <TopBar :pageName = "pageName" id="topbar"/>
+            <div id="content">
+                <h1>Profile Information</h1>
+            </div>
         </div>
     </div>
 </template>
@@ -16,18 +19,33 @@
 #navbar {
     width: 20%;
 }
-#content {
+#right-side {
     width: 80%;
+    display: flex;
+    flex-direction: column;
+}
+#topbar {
+    height: 5%;
+}
+#content {
     background-color: #ADBC9F;
+    height: 90%;
 }
 </style>
 
 <script>
 import Navbar from '@/components/Navbar.vue'
+import TopBar from '@/components/TopBar.vue'
 
 export default {
+    data() {
+        return {
+            pageName: "Profile"
+        }
+    },
     components: {
-        Navbar
+        Navbar,
+        TopBar
     }
 }
 </script>
