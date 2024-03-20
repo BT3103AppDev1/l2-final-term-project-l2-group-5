@@ -14,8 +14,6 @@
     <button @click="checkLoginStatus">
       Check Login Status
     </button>
-    <p v-if="isLoggedIn">You are logged in.</p>
-    <p v-else>You are not logged in.</p>
   </div>
   <router-view/>
 </template>
