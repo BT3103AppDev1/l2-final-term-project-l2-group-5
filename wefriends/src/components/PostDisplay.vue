@@ -1,14 +1,16 @@
 <template>
   <div>
-    <div v-for="post in filteredPosts" :key="post.id" class="post">
-      <div class="post-content">
-        <h3>{{ post.title }}</h3>
-        <p>{{ post.body }}</p>
-        <div class="tag-container">
-          <span class="tag" :class="post.tag">{{ post.tag }}</span>
+    <a v-for="post in filteredPosts" :key="post.id" :href="'/post/' + post.id" class="post-link">
+      <div class="post">
+        <div class="post-content">
+          <h3>{{ post.title }}</h3>
+          <p class="truncated">{{ truncateText(post.body) }}</p>
+          <div class="tag-container">
+            <span class="tag" :class="post.tag">{{ post.tag }}</span>
+          </div>
         </div>
       </div>
-    </div>
+    </a>
   </div>
 </template>
 
@@ -25,6 +27,15 @@ export default {
         });
       }
     }
+  },
+  methods: {
+    truncateText(text) {
+      if (text.length > 200) {
+        return text.substring(0, 200) + '...';
+      } else {
+        return text;
+      }
+    }
   }
 };
 </script>
@@ -39,6 +50,12 @@ export default {
 
 .post-content {
   margin-bottom: 10px;
+}
+
+.truncated {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 h3 {

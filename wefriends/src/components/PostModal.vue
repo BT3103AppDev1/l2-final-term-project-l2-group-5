@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
+import { getFirestore, collection, addDoc, serverTimestamp, getDocs } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
 
 export default {
   data() {
@@ -29,8 +29,19 @@ export default {
       showModal: false,
       title: '',
       body: '',
-      selectedTag: 'Happy'
+      selectedTag: 'Happy',
+      numberOfPosts: 0
     };
+  },
+  async created() {
+    try {
+      const db = getFirestore();
+      const postsCollection = collection(db, 'posts');
+      const querySnapshot = await getDocs(postsCollection);
+      this.numberOfPosts = querySnapshot.size;
+    } catch (error) {
+      console.error('Error fetching number of posts:', error);
+    }
   },
   methods: {
     openModal() {
@@ -41,6 +52,7 @@ export default {
     },
     async createPost() {
       const post = {
+        id: (this.numberOfPosts + 1).toString(),
         title: this.title,
         body: this.body,
         tag: this.selectedTag,
