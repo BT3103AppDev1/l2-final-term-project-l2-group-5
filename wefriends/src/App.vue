@@ -15,7 +15,7 @@
       Check Login Status
     </button>
   </div>
-  <router-view/>
+  <router-view />
 </template>
 
 <script>
@@ -58,7 +58,10 @@ body {
   margin: 0;
   padding: 0;
 }
-.router-link-active, .router-link-exact-active, a{
+
+.router-link-active,
+.router-link-exact-active,
+a {
   text-decoration: none;
 }
 </style>
