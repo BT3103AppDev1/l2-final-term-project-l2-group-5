@@ -1,21 +1,23 @@
 <template>
-  <div class="modal" v-show="showModal">
-    <div class="modal-content">
-      <span class="close" @click="closeModal">&times;</span>
-      <div class="input-container">
-        <input type="text" v-model="title" placeholder="Title" class="rounded-input">
+  <div class="modal-wrapper" v-show="showModal">
+    <div class="modal">
+      <div class="modal-content">
+        <span class="close" @click="closeModal">&times;</span>
+        <div class="input-container">
+          <input type="text" v-model="title" placeholder="Title" class="rounded-input">
+        </div>
+        <div class="input-container">
+          <textarea v-model="body" placeholder="Body Text" class="rounded-input" id="body"></textarea>
+        </div>
+        <div class="input-container">
+          <select v-model="selectedTag" class="rounded-input">
+            <option value="Happy">Happy</option>
+            <option value="Sad">Sad</option>
+            <option value="Neutral">Neutral</option>
+          </select>
+        </div>
+        <button @click="createPost" class="create-button">Create Post</button>
       </div>
-      <div class="input-container">
-        <textarea v-model="body" placeholder="Body Text" class="rounded-input"></textarea>
-      </div>
-      <div class="input-container">
-        <select v-model="selectedTag" class="rounded-input">
-          <option value="Happy">Happy</option>
-          <option value="Sad">Sad</option>
-          <option value="Neutral">Neutral</option>
-        </select>
-      </div>
-      <button @click="createPost" class="create-button">Create Post</button>
     </div>
   </div>
 </template>
@@ -62,6 +64,7 @@ export default {
         const db = getFirestore();
         const postsCollection = collection(db, 'posts');
         await addDoc(postsCollection, post);
+        this.numberOfPosts++;
         this.closeModal();
         this.$emit('create');
       } catch (error) {
@@ -73,32 +76,44 @@ export default {
 </script>
 
 <style scoped>
-.modal {
+.modal-wrapper {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
-  width: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  background-color: white;
+  width: 600px;
+  height: 300px;
   padding: 20px;
   border-radius: 10px;
 }
 
 .modal-content {
-  background-color: white;
-  padding: 20px;
-  border-radius: 10px;
+  position: relative;
+  padding-top:30px;
 }
 
 .close {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: -5px;
+  right: 0px;
   cursor: pointer;
 }
 
 .input-container {
   margin-bottom: 15px;
+}
+
+#body {
+  height:100px;
 }
 
 .rounded-input {

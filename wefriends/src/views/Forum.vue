@@ -1,28 +1,36 @@
 <template>
   <div class="forum-container">
-    <div class="forum-left">
-      <Navbar id="navbar" />
+    <Navbar id="navbar" />
+
+    <div class="forum-content">
+      <TopBar :pageName="pageName" id="topbar" />
+      <div class="content-wrapper">
+        <div class="forum-mid">
+          <div class="search-container">
+            <input type="text" v-model="searchQuery" placeholder="Search by title...">
+          </div>
+
+          <div class="sort-container">
+            <select v-model="sortOrder" class="sort-dropdown">
+              <option value="desc">Latest to Oldest</option>
+              <option value="asc">Oldest to Latest</option>
+            </select>
+          </div>
+
+          <div class="create-post">
+            <button @click="openModal" class="post-button">Create Post</button>
+          </div>
+        </div>
+
+        <div class="forum-right">
+          <PostDisplay :displayedPosts="displayedPosts" />
+          <div class="pagination-buttons">
+            <button @click="previousPage" :disabled="currentPage === 1">Previous</button>
+            <button @click="nextPage" :disabled="currentPage * pageSize >= totalPosts">Next</button>
+          </div>
+        </div>
+      </div>
     </div>
-
-
-      <div class="forum-mid">
-        <div class="create-post">
-          <button @click="openModal">Create Post</button>
-        </div>
-
-        <div class="search-container">
-          <input type="text" v-model="searchQuery" placeholder="Search by title...">
-        </div>
-      </div>
-
-      <div class="forum-right">
-        <PostDisplay :posts="displayedPosts" />
-        <div class="pagination-buttons">
-          <button @click="previousPage" :disabled="currentPage === 1">Previous</button>
-          <button @click="nextPage" :disabled="currentPage * pageSize >= totalPosts">Next</button>
-        </div>
-      </div>
-
 
     <PostModal ref="postModal" :fetchPosts="fetchPosts" />
   </div>
@@ -33,7 +41,7 @@ import PostModal from '@/components/PostModal.vue';
 import PostDisplay from '@/components/PostDisplay.vue';
 import Navbar from '@/components/Navbar.vue'
 import TopBar from '@/components/TopBar.vue'
-import { getFirestore, collection, query, orderBy, limit, onSnapshot } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
+import { getFirestore, collection, query, orderBy, onSnapshot } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
 
 export default {
   components: {
@@ -48,8 +56,9 @@ export default {
       pageName: "Forum",
       posts: [],
       searchQuery: '',
+      sortOrder: 'desc',
       currentPage: 1,
-      pageSize: 4,
+      pageSize: 3,
       totalPosts: 0
     };
   },
@@ -64,10 +73,17 @@ export default {
         });
       }
     },
+    sortedPosts() {
+      if (this.sortOrder === 'desc') {
+        return this.filteredPosts.slice().sort((a, b) => b.timestamp - a.timestamp);
+      } else {
+        return this.filteredPosts.slice().sort((a, b) => a.timestamp - b.timestamp);
+      }
+    },
     displayedPosts() {
       const start = (this.currentPage - 1) * this.pageSize;
       const end = start + this.pageSize;
-      return this.filteredPosts.slice(start, end);
+      return this.sortedPosts.slice(start, end);
     }
   },
 
@@ -105,46 +121,73 @@ export default {
 
 <style scoped>
 .forum-container {
-  position: relative;
+  display: flex;
+  justify-content: space-around;
+  height:100vh;
+}
+
+#navbar {
+  width: 20%;
+}
+
+.forum-content {
+  width: 80%;
+  display: flex;
+  flex-direction: column;
   background-color: #ADBC9F;
 }
 
-.create-post {
-  position: relative;
-  top: 50%;
-  left: 0;
-  padding: 20px;
-}
-
-.search-container {
-  position: relative;
-  width: 15%;
-  left:20%;
-  padding: 20px;
-}
-
-.forum-left{
-  width:20%;
-  background-color: white;
+.content-wrapper {
+  display: flex;
 }
 
 .forum-mid {
-  position: absolute;
-  top: 0;
-  left: 25%;
-  width: 50%;
+  width: 30%;
   padding: 20px;
-  height: 100vh;
+  background-color: #ADBC9F;
+}
+
+.search-container {
+  padding: 20px;
+  width: 79%;
+}
+
+.sort-container {
+  padding: 20px;
+  width: 100%;
+}
+
+.sort-dropdown {
+  width: 85%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.create-post {
+  padding: 20px;
+}
+
+.post-button {
+  background-color: #436850;
+  border: none;
+  border-radius: 10px;
+  width: 96%;
+  height: 40px;
+  color: white;
+  text-align: center;
+  cursor: pointer;
+}
+
+.post-button:hover {
+  background-color: #34503b;
 }
 
 .forum-right {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 50%;
+  width: 70%;
   padding: 20px;
+  padding-top:40px;
   background-color: #ADBC9F;
-  height: 91vh;
 }
 
 .input-container {
@@ -162,8 +205,13 @@ input[type="text"] {
   margin-top: 20px;
 }
 
+#topbar {
+  height: 5%;
+}
+
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
 </style>

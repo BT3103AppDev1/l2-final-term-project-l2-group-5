@@ -1,6 +1,6 @@
 <template>
   <div>
-    <a v-for="post in filteredPosts" :key="post.id" :href="'/post/' + post.id" class="post-link">
+    <a v-for="post in displayedPosts" :key="post.id" :href="'/post/' + post.id" class="post-link">
       <div class="post">
         <div class="post-content">
           <h3>{{ post.title }}</h3>
@@ -16,22 +16,11 @@
 
 <script>
 export default {
-  props: ['posts', 'searchQuery'],
-  computed: {
-    filteredPosts() {
-      if (!this.searchQuery) {
-        return this.posts;
-      } else {
-        return this.posts.filter(post => {
-          return post.title.toLowerCase().includes(this.searchQuery.toLowerCase());
-        });
-      }
-    }
-  },
+  props: ['displayedPosts'],
   methods: {
     truncateText(text) {
-      if (text.length > 200) {
-        return text.substring(0, 200) + '...';
+      if (text.length > 90) {
+        return text.substring(0, 90) + '...';
       } else {
         return text;
       }
@@ -79,14 +68,14 @@ h3 {
 }
 
 .Happy {
-  background-color: #4CAF50; /* Green */
+  background-color: #4CAF50;
 }
 
 .Sad {
-  background-color: #FFC0CB; /* Pink */
+  background-color: #FFC0CB;
 }
 
 .Neutral {
-  background-color: #4682B4; /* Blue */
+  background-color: #4682B4;
 }
 </style>
