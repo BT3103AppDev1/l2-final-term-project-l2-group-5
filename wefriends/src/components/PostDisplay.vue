@@ -42,10 +42,11 @@ export default {
 
 <style scoped>
 .post {
-  border: 1px solid #ccc;
+  border: 1px solid #F5F5F5;
   border-radius: 10px;
   margin-bottom: 20px;
   padding: 20px;
+  background-color: #F5F5F5;
 }
 
 .post-content {

@@ -1,46 +1,55 @@
 <template>
-  <h1>Forum</h1>
-  <i class="fa-thin fa-caret-down"></i>
   <div class="forum-container">
     <div class="forum-left">
-      <div class="create-post">
-        <button @click="openModal">Create Post</button>
-      </div>
-
-      <div class="search-container">
-        <input type="text" v-model="searchQuery" placeholder="Search by title...">
-      </div>
+      <Navbar id="navbar" />
     </div>
 
-    <div class="post-display">
-      <PostDisplay :posts="displayedPosts" />
-      <div class="pagination-buttons">
-        <button @click="previousPage" :disabled="currentPage === 1">Previous</button>
-        <button @click="nextPage" :disabled="currentPage * pageSize >= totalPosts">Next</button>
+
+      <div class="forum-mid">
+        <div class="create-post">
+          <button @click="openModal">Create Post</button>
+        </div>
+
+        <div class="search-container">
+          <input type="text" v-model="searchQuery" placeholder="Search by title...">
+        </div>
       </div>
-    </div>
+
+      <div class="forum-right">
+        <PostDisplay :posts="displayedPosts" />
+        <div class="pagination-buttons">
+          <button @click="previousPage" :disabled="currentPage === 1">Previous</button>
+          <button @click="nextPage" :disabled="currentPage * pageSize >= totalPosts">Next</button>
+        </div>
+      </div>
+
 
     <PostModal ref="postModal" :fetchPosts="fetchPosts" />
   </div>
 </template>
 
 <script>
-import PostModal from '../components/PostModal.vue';
-import PostDisplay from '../components/PostDisplay.vue';
+import PostModal from '@/components/PostModal.vue';
+import PostDisplay from '@/components/PostDisplay.vue';
+import Navbar from '@/components/Navbar.vue'
+import TopBar from '@/components/TopBar.vue'
 import { getFirestore, collection, query, orderBy, limit, onSnapshot } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
 
 export default {
   components: {
     PostModal,
-    PostDisplay
+    PostDisplay,
+    Navbar,
+    TopBar
   },
 
   data() {
     return {
+      pageName: "Forum",
       posts: [],
       searchQuery: '',
       currentPage: 1,
-      pageSize: 3,
+      pageSize: 4,
       totalPosts: 0
     };
   },
@@ -97,27 +106,45 @@ export default {
 <style scoped>
 .forum-container {
   position: relative;
+  background-color: #ADBC9F;
 }
 
 .create-post {
-  position: absolute;
-  top: 60px;
+  position: relative;
+  top: 50%;
   left: 0;
   padding: 20px;
 }
 
 .search-container {
-  position: absolute;
+  position: relative;
   width: 15%;
+  left:20%;
   padding: 20px;
 }
 
-.post-display {
+.forum-left{
+  width:20%;
+  background-color: white;
+}
+
+.forum-mid {
+  position: absolute;
+  top: 0;
+  left: 25%;
+  width: 50%;
+  padding: 20px;
+  height: 100vh;
+}
+
+.forum-right {
   position: absolute;
   top: 0;
   right: 0;
-  width: 70%;
+  width: 50%;
   padding: 20px;
+  background-color: #ADBC9F;
+  height: 91vh;
 }
 
 .input-container {
