@@ -17,8 +17,8 @@
                                 <p id="prompt-desc">{{prompt_body}}</p>
                                 <div class="text-input" >
                                     <form id="text-form">
-                                        <textarea placeholder="Type Here..."></textarea>
-                                        <button type="button" id="submit-button">></button>
+                                        <textarea placeholder="Type Here..." id="description"></textarea>
+                                        <button type="button" id="submit-button" v-on:click="save">></button>
                                     </form>
                                 </div>
                             </div>
@@ -225,10 +225,10 @@ ul {
 
 <script>
 import firebaseApp from '@/firebase'
-import { getFirestore, collection, getDocs, query, limit } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
+import { getFirestore, collection, getDocs, query, limit, setDoc, doc} from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
 import Navbar from '@/components/Navbar.vue'
 import TopBar from '@/components/TopBar.vue'
-
+const db = getFirestore(firebaseApp);
 export default {
     data() {
         return {
@@ -245,7 +245,7 @@ export default {
         };
     },
     async mounted() {
-        const db = getFirestore(firebaseApp);
+        
 
         try {
             const querySnapshot = await getDocs(query(collection(db, 'posts'), limit(3)));
@@ -286,6 +286,24 @@ export default {
       if (text.length <= length) return text;
       return text.substring(0, length) + '...';
         },
+        async save() {
+            console.log("saving")
+            let title = new Date().toLocaleDateString();
+            let description = document.getElementById("description").value
+
+            alert("posting diary entry")
+            try {
+                const docRef = await setDoc(doc(db, "Diary", title),{
+                    Title: title, Description: description
+                })
+                console.log(docRef)
+                document.getElementById('text-form').reset();
+                // somehow this is very very important guys
+                this.$emit("added")
+            } catch(error) {
+                console.log("Error1!!:", error);
+            }
+        }
     },
     components: {
         Navbar,
