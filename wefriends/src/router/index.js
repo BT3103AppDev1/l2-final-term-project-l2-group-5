@@ -9,6 +9,7 @@ import Forum from '@/views/Forum.vue'
 import Clinics from '@/views/Clinics.vue'
 import Education from '@/views/Education.vue'
 import Diary from '@/views/Diary.vue'
+import PostPage from '@/components/PostPage.vue';
 
 const routes = [
     {
@@ -60,6 +61,12 @@ const routes = [
         path: '/profile',
         name: 'Profile',
         component: Profile
+    },
+    {
+        path: '/post/:postId', // Dynamic route with postId parameter
+        name: 'PostPage',
+        component: PostPage,
+        props: true
     }
 ]
 

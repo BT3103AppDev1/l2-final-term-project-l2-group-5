@@ -29,7 +29,7 @@
         <input type="password" placeholder="Confirm Password..." v-model="confirmPassword" />
       </div>
       
-      <button type="submit" id="login-button" :disabled="fieldsFilled" :class="{'disabled-button':fieldsFilled}">Register</button>
+      <button type="submit" id="button" :disabled="fieldsFilled" :class="{'disabled-button':fieldsFilled}">Register</button>
     </form>
 
     <div class="signup-prompt">
@@ -90,7 +90,7 @@
     margin-right: 15%;
 }
 
-#login-button {
+#button {
     background-color: #436850;
     border: none; 
     border-radius: 10px;
@@ -129,7 +129,7 @@
   color: green;
 }
 
-#login-button.disabled-button {
+#button.disabled-button {
   background-color: #e4e4e4;
   cursor: not-allowed;
 }
