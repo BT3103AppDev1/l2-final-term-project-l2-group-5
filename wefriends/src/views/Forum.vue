@@ -95,6 +95,7 @@ export default {
     displayedPosts() {
       const start = (this.currentPage - 1) * this.pageSize;
       const end = start + this.pageSize;
+      this.totalPosts = this.sortedPosts.length;
       return this.sortedPosts.slice(start, end);
     }
   },
