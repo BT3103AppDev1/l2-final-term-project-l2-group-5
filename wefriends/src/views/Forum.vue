@@ -236,7 +236,30 @@ input[type="text"] {
 }
 
 .pagination-buttons {
-  margin-top: 20px;
+  position: absolute;
+  bottom: -15px;
+  left: 72%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pagination-buttons button {
+  background-color: #436850;
+  border: none;
+  border-radius: 10px;
+  height: 40px;
+  color: white;
+  cursor: pointer;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: medium;
+  margin: 0 15px;
+  width: 120px;
+}
+
+.pagination-buttons button:hover {
+  background-color: #34503b;
 }
 
 #topbar {
