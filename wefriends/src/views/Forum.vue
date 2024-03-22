@@ -7,18 +7,25 @@
       <div class="content-wrapper">
         <div class="forum-mid">
           <div class="search-container">
-            <input type="text" v-model="searchQuery" placeholder="Search by title...">
+            <input id="search-text" type="text" v-model="searchQuery" placeholder="Search by title...">
           </div>
 
           <div class="sort-container">
             <select v-model="sortOrder" class="sort-dropdown">
-              <option value="desc">Latest to Oldest</option>
-              <option value="asc">Oldest to Latest</option>
+              <option value="desc" class="sort-options">Sort: Latest to Oldest</option>
+              <option value="asc" class="sort-options">Sort: Oldest to Latest</option>
             </select>
+            
+            <div class="tag-filter-container">
+              <h3 id="filter-header">Filter by Tag:</h3>
+              <div class="tag-filter">
+                <span v-for="tag in tags" :key="tag" :class="[tag, 'tag-toggle', { active: tagFilters.includes(tag) }]" @click="toggleTagFilter(tag)">{{ tag }}</span>
+              </div>
+            </div>
           </div>
 
           <div class="create-post">
-            <button @click="openModal" class="post-button">Create Post</button>
+            <button @click="openModal" class="post-button">Create Discussion</button>
           </div>
         </div>
 
@@ -59,19 +66,24 @@ export default {
       sortOrder: 'desc',
       currentPage: 1,
       pageSize: 3,
-      totalPosts: 0
+      totalPosts: 0,
+      tags: ['Happy', 'Sad', 'Neutral'],
+      tagFilters: []
     };
   },
 
   computed: {
     filteredPosts() {
-      if (!this.searchQuery) {
-        return this.posts;
-      } else {
-        return this.posts.filter(post => {
+      let filtered = this.posts;
+      if (this.searchQuery) {
+        filtered = filtered.filter(post => {
           return post.title.toLowerCase().includes(this.searchQuery.toLowerCase());
         });
       }
+      if (this.tagFilters.length > 0) {
+        filtered = filtered.filter(post => this.tagFilters.includes(post.tag));
+      }
+      return filtered;
     },
     sortedPosts() {
       if (this.sortOrder === 'desc') {
@@ -110,6 +122,13 @@ export default {
     },
     previousPage() {
       this.currentPage--;
+    },
+    toggleTagFilter(tag) {
+      if (this.tagFilters.includes(tag)) {
+        this.tagFilters = this.tagFilters.filter(filterTag => filterTag !== tag);
+      } else {
+        this.tagFilters.push(tag);
+      }
     }
   },
 
@@ -152,6 +171,11 @@ export default {
   width: 79%;
 }
 
+#search-text {
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: medium;
+}
+
 .sort-container {
   padding: 20px;
   width: 100%;
@@ -162,6 +186,13 @@ export default {
   padding: 10px;
   border-radius: 5px;
   border: 1px solid #ccc;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: medium;
+}
+
+.sort-options {
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: medium;
 }
 
 .create-post {
@@ -177,6 +208,8 @@ export default {
   color: white;
   text-align: center;
   cursor: pointer;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size:medium;
 }
 
 .post-button:hover {
@@ -212,6 +245,45 @@ input[type="text"] {
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+#filter-header {
+  margin-top: 0px;
+}
+
+.tag-filter-container {
+  background-color: #f5f5f5;
+  border-radius: 10px;
+  padding: 20px;
+  width:75%;
+  margin-top: 40px;
+}
+
+.tag-filter {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+
+.tag-toggle {
+  background-color: #ccc;
+  border-radius: 20px;
+  padding: 5px 10px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.tag-toggle.active.Happy {
+  background-color: #4CAF50;
+}
+
+.tag-toggle.active.Sad {
+  background-color: #FFC0CB;
+}
+
+.tag-toggle.active.Neutral {
+  background-color: #4682B4;
 }
 
 </style>
