@@ -274,6 +274,10 @@ button:disabled {
   cursor: pointer;
 }
 
+.tag-toggle.active {
+  color: white;
+}
+
 .tag-toggle.active.Happy {
   background-color: #4CAF50;
 }

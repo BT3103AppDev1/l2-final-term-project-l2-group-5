@@ -38,6 +38,15 @@ export default {
   background-color: #F5F5F5;
 }
 
+.post-link {
+  text-decoration: none;
+  color: black;
+}
+
+.post-link h3:hover {
+  text-decoration: underline;
+}
+
 .post-content {
   margin-bottom: 10px;
 }
