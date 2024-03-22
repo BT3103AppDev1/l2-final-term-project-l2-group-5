@@ -279,7 +279,7 @@ button:disabled {
   background-color: #f5f5f5;
   border-radius: 10px;
   padding: 20px;
-  width:75%;
+  width:73%;
   margin-top: 40px;
 }
 
