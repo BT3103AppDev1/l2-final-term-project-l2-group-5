@@ -1,30 +1,69 @@
 <template>
-  <div>
-    <h1>{{ post.title }}</h1>
-    <p>{{ post.body }}</p>
+  <div class="post-container">
+    <Navbar id="navbar" />
 
-    <div v-for="comment in comments" :key="comment.id">
-      <p>{{ comment.content }}</p>
-      <p>Posted at: {{ comment.timestamp }}</p>
+    <div class="post-content">
+      <TopBar :pageName="pageName" id="topbar" />
+      <h1>{{ post.title }}</h1>
+      <p>{{ post.body }}</p>
+
+      <div v-for="comment in comments" :key="comment.id">
+        <p>{{ comment.content }}</p>
+        <p>Posted at: {{ comment.timestamp }}</p>
+      </div>
+
+      <div>
+        <textarea v-model="newComment" placeholder="Add a comment"></textarea>
+        <button @click="submitComment">Submit</button>
+      </div>
     </div>
-
-    <div>
-      <textarea v-model="newComment" placeholder="Add a comment"></textarea>
-      <button @click="submitComment">Submit</button>
-    </div>
-
   </div>
 </template>
 
+<style scoped>
+.post-container {
+  display: flex;
+  justify-content: space-around;
+  height:100vh;
+}
+
+#navbar {
+  width: 20%;
+}
+
+#topbar {
+  height: 5%;
+}
+
+.post-content {
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  background-color: #ADBC9F;
+}
+
+.content-wrapper {
+  display: flex;
+}
+
+</style>
+
 <script>
 import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
+import Navbar from '@/components/Navbar.vue'
+import TopBar from '@/components/TopBar.vue'
 
 export default {
+  components: {
+    Navbar,
+    TopBar
+  },
   data() {
     return {
       post: {},
       comments: [],
-      newComment: ''
+      newComment: '',
+      pageName: 'Post ' + this.$route.params.postId
     };
   },
   async created() {
