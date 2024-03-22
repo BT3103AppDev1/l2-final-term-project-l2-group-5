@@ -1,8 +1,8 @@
 <template>
     <div class="container1">
-        <div id="logo">
-            <img src="../assets/logo.png" id="icon">
-            <h1 id="logo-name">WeFriends</h1>
+        <div id="brand">
+            <img src="../assets/logo.png" class="logo">
+            <h1 class="name">WeFriends</h1>
         </div>
         <div class="info">
             <div class="title-text">
@@ -69,13 +69,10 @@ export default {
 </script>
 
 <style scoped>
-#logo {
+#brand {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 20px;
-    margin-right: 20px;
-    margin-bottom: 50px;
 }
 
 #logo-name {
