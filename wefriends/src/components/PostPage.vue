@@ -11,14 +11,16 @@
           <p class="post-body">{{ post.body }}</p>
         </div>
 
-        <div v-for="comment in comments" :key="comment.id" class="comment">
-          <p>{{ comment.content }}</p>
-          <p>Posted at: {{ comment.formattedTimestamp }}</p>
+        <div class="comment-container">
+          <div v-for="comment in comments" :key="comment.id" class="comment">
+            <p>{{ comment.content }}</p>
+            <p>Posted at: {{ comment.formattedTimestamp }}</p>
+          </div>
         </div>
 
         <div class="comment-form">
           <textarea v-model="newComment" placeholder="Add a comment"></textarea>
-          <button @click="submitComment">Submit</button>
+          <button @click="submitComment">Send</button>
         </div>
       </div>
     </div>
@@ -26,7 +28,7 @@
 </template>
 
 <script>
-import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
+import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp, orderBy } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
 import Navbar from '@/components/Navbar.vue'
 import TopBar from '@/components/TopBar.vue'
 
@@ -92,11 +94,18 @@ export default {
         const commentsQuery = query(collection(db, 'comments'), where('postId', '==', postId));
         const commentsSnapshot = await getDocs(commentsQuery);
 
-        this.comments = commentsSnapshot.docs.map(doc => {
-          const data = doc.data();
-          const timestamp = data.timestamp.toDate();
-          const formattedTimestamp = timestamp.toLocaleString();
-          return { ...data, formattedTimestamp };
+        const postComments = commentsSnapshot.docs
+          .filter(doc => doc.data().postId === postId)
+          .map(doc => {
+            const data = doc.data();
+            const timestamp = data.timestamp.toDate();
+            const formattedTimestamp = timestamp.toLocaleString();
+            return { ...data, formattedTimestamp };
+          });
+
+        // Sort comments by timestamp (latest to oldest)
+        this.comments = postComments.sort((a, b) => {
+          return b.timestamp - a.timestamp;
         });
       } catch (error) {
         console.error('Error loading comments:', error);
@@ -111,6 +120,11 @@ export default {
   display: flex;
   justify-content: space-around;
   height: 100vh;
+  overflow-x: hidden;
+}
+
+.post-container::-webkit-scrollbar {
+  display: none;
 }
 
 #navbar {
@@ -142,7 +156,9 @@ export default {
   border: 1px solid #ccc;
   padding: 10px;
   margin-bottom: 10px;
-  width: 80%;
+  width:80%;
+  align-self: flex;
+  margin-left:150px;
 }
 
 .post-title {
@@ -154,32 +170,52 @@ export default {
 
 .post-body {
   line-height: 1.5;
+  padding-left: 20px;
+}
+
+.comment-container {
+  overflow-y: auto;
+  width: 70%;
+  max-height: 500px;
+  margin-left:310px
 }
 
 .comment {
   background-color: #f5f5f5;
   border: 1px solid #ccc;
   padding: 20px;
-  margin-bottom: 5px;
-  width:60%
+  margin-bottom: 10px;
+  margin-left: 30px;
+  width:90%;
 }
 
 .comment-form {
   background-color: #f5f5f5;
   border: 1px solid #ccc;
   padding: 20px;
-  margin-top: 20px;
-  width:70%;
+  margin-left:200px;
+  margin-bottom: 20px;
+  width:60%;
+  display: flex;
+  position: fixed;
+  bottom: 0;
 }
 
 textarea {
-  width: calc(100% - 20px);
-  height: 100px;
+  width: calc(100% - 80px);
+  height: 50px;
   padding: 10px;
   border-radius: 5px;
   border: 1px solid #ccc;
   box-sizing: border-box;
-  margin-bottom: 10px;
+  margin-right: 20px;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: medium;
+}
+
+.button-wrapper {
+  display: flex;
+  align-items: center;
 }
 
 button {
@@ -189,6 +225,8 @@ button {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: medium;
 }
 
 button:hover {
