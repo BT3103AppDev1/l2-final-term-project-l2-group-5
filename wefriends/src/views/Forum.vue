@@ -7,7 +7,7 @@
       <div class="content-wrapper">
         <div class="forum-mid">
           <div class="search-container">
-            <input id="search-text" type="text" v-model="searchQuery" placeholder="Search by title...">
+            <input id="search-text" type="text" v-model="searchQuery" placeholder="Search by Title...">
           </div>
 
           <div class="sort-container">

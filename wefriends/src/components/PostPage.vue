@@ -6,12 +6,14 @@
       <TopBar :pageName="pageName" id="topbar" />
       
       <div class="content-wrapper">
+        <button class="return-button" @click="navigate('/forum')">Return to Forum</button>
+
         <div class="main-post">
           <h1 class="post-title">{{ post.title }}</h1>
           <p class="post-body">{{ post.body }}</p>
         </div>
 
-        <div class="comment-container">
+        <div class="comment-container" :style="{ maxHeight: commentContainerMaxHeight + 'px' }">
           <div v-for="comment in comments" :key="comment.id" class="comment">
             <p>{{ comment.content }}</p>
             <p>Posted at: {{ comment.formattedTimestamp }}</p>
@@ -31,19 +33,35 @@
 import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp, orderBy } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
 import Navbar from '@/components/Navbar.vue'
 import TopBar from '@/components/TopBar.vue'
+import { useRouter } from 'vue-router';
 
 export default {
   components: {
     Navbar,
     TopBar
   },
+  setup() {
+        const router = useRouter();
+        return { router };
+  },
   data() {
     return {
       post: {},
       comments: [],
       newComment: '',
-      pageName: 'Post ' + this.$route.params.postId
+      pageName: 'Post ' + this.$route.params.postId,
+      commentContainerMaxHeight: 0
     };
+  },
+  mounted() {
+    // Calculate initial height
+    this.adjustCommentContainerHeight();
+    // Listen for window resize events to dynamically adjust the height
+    window.addEventListener('resize', this.adjustCommentContainerHeight);
+  },
+  beforeUnmount() {
+    // Remove window resize event listener when component is about to be destroyed
+    window.removeEventListener('resize', this.adjustCommentContainerHeight);
   },
   async created() {
     try {
@@ -70,6 +88,17 @@ export default {
     }
   },
   methods: {
+    navigate(path) {
+        this.$router.push(path);
+    },
+    adjustCommentContainerHeight() {
+      const mainPostHeight = document.querySelector('.main-post').offsetHeight;
+      const commentFormHeight = document.querySelector('.comment-form').offsetHeight;
+      const windowHeight = window.innerHeight;
+
+      const commentContainerHeight = windowHeight - mainPostHeight - commentFormHeight - 200;
+      this.commentContainerMaxHeight = Math.max(commentContainerHeight, 0);
+    },
     async submitComment() {
       if (this.newComment.trim() === '') return;
       
@@ -151,6 +180,24 @@ export default {
   justify-content: flex-start;
 }
 
+.return-button {
+  position: absolute;
+  top: 110px;
+  left: 370px;
+  background-color: #436850;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: medium;
+}
+
+.return-button:hover {
+  background-color: #34503b;
+}
+
 .main-post {
   background-color: #f5f5f5;
   border: 1px solid #ccc;
@@ -159,25 +206,26 @@ export default {
   width:80%;
   align-self: flex;
   margin-left:150px;
+  border-radius: 20px;
 }
 
 .post-title {
   font-weight: bold;
   font-size: 1.2em;
   margin-bottom: 5px;
-  padding: 20px;
+  margin-left: 20px;
 }
 
 .post-body {
   line-height: 1.5;
   padding-left: 20px;
+  padding-right: 20px;
 }
 
 .comment-container {
   overflow-y: auto;
   width: 70%;
-  max-height: 500px;
-  margin-left:310px
+  margin-left:310px;
 }
 
 .comment {
@@ -187,6 +235,7 @@ export default {
   margin-bottom: 10px;
   margin-left: 30px;
   width:90%;
+  border-radius: 20px;
 }
 
 .comment-form {
@@ -199,6 +248,7 @@ export default {
   display: flex;
   position: fixed;
   bottom: 0;
+  border-radius: 20px;
 }
 
 textarea {
@@ -219,7 +269,7 @@ textarea {
 }
 
 button {
-  background-color: #4CAF50;
+  background-color: #436850;
   color: white;
   padding: 10px 20px;
   border: none;
@@ -230,6 +280,22 @@ button {
 }
 
 button:hover {
-  background-color: #45a049;
+  background-color: #34503b;
+}
+.comment-container::-webkit-scrollbar {
+  width: 7px;
+}
+
+.comment-container::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.comment-container::-webkit-scrollbar-thumb {
+  background-color: #fbfada;
+  border-radius: 5px;
+}
+
+.comment-container::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
 }
 </style>
