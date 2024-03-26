@@ -1,5 +1,5 @@
 <template>
-    <div id="view">
+    <div id="view" v-if="profile">
         <Navbar id="navbar" />
         <div id="right-side">
             <TopBar :pageName = "pageName" id="topbar"/>
@@ -46,10 +46,37 @@
             </div>
         </div>
     </div>
+    <div v-else>
+        <h1>There is no profile</h1>
+        <form @submit.prevent="createProfile">
+            <div class="rounded-input">
+                <input type="text" placeholder="Username..." v-model="username" />
+            </div>
+            
+            <button type="submit" id="button" :disabled="fieldsFilled" :class="{'disabled-button':fieldsFilled}">Create Profile</button>
+        </form>
+    </div>
     
 </template>
 
 <style>
+#button {
+    background-color: #436850;
+    border: none; 
+    border-radius: 10px;
+    width: 20%;
+    height: 40px;
+    padding: 10px;
+    color: white;
+    text-align: center;
+    display: block;
+    margin: 10px auto; 
+    cursor: pointer; 
+}
+#button.disabled-button {
+  background-color: #e4e4e4;
+  cursor: not-allowed;
+}
 
 #view {
     display: flex;
@@ -225,10 +252,15 @@ ul {
 
 <script>
 import firebaseApp from '@/firebase'
-import { getFirestore, collection, getDocs, query, limit, setDoc, doc} from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
+import { getFirestore, collection, getDocs, addDoc, where, query, limit, setDoc, doc} from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
 import Navbar from '@/components/Navbar.vue'
 import TopBar from '@/components/TopBar.vue'
+
 const db = getFirestore(firebaseApp);
+const usernamesCollection = collection(db, 'usernames');
+const auth = getAuth(firebaseApp);
+
 export default {
     data() {
         return {
@@ -241,11 +273,49 @@ export default {
             pageName: "Home",
             quote: "",
             prompt_title: "",
-            prompt_body: ""
+            prompt_body: "",
+            profile: false,
+            username: '',
+            userId: '',
+            currentUser: null,
         };
     },
+    computed: {
+        fieldsFilled() {
+        return !(this.username);
+        },
+    },
     async mounted() {
-        
+        await new Promise((resolve, reject) => {
+            const unsubscribe = auth.onAuthStateChanged(user => {
+            unsubscribe();
+            if (user) {
+                // User is signed in.
+                this.userId = user.uid;
+                resolve();
+            } else {
+                // No user is signed in.
+                console.log("No user is signed in.");
+                reject(new Error("No user is signed in."));
+            }
+            });
+        });
+
+        try {
+            console.log(this.userId)
+            const profileQuery = query(usernamesCollection, where('userId', '==', this.userId));
+            const profileSnapshot = await getDocs(profileQuery);
+            console.log("checked for profile")
+            console.log(profileSnapshot.size)
+            // Profile with userId exists
+            if (profileSnapshot.size > 0) {
+              this.profile = true;
+            } else {
+                return;
+            }
+        } catch (error) {
+            console.log(error);
+        }
 
         try {
             const querySnapshot = await getDocs(query(collection(db, 'posts'), limit(3)));
@@ -282,9 +352,9 @@ export default {
         }
     },
     methods: {
-    truncateText(text, length) {
-      if (text.length <= length) return text;
-      return text.substring(0, length) + '...';
+        truncateText(text, length) {
+            if (text.length <= length) return text;
+                return text.substring(0, length) + '...';
         },
         async save() {
             console.log("saving")
@@ -302,6 +372,36 @@ export default {
                 this.$emit("added")
             } catch(error) {
                 console.log("Error1!!:", error);
+            }
+        },
+        async createProfile() {
+            console.log("attempting to create profile")
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    this.currentUser = user
+                } else {
+                    console.log("No user is signed in.");
+                }
+            });
+            try {
+                const usernameQuery = query(usernamesCollection, where('username', '==', this.username));
+                const usernameSnapshot = await getDocs(usernameQuery);
+                
+                if (usernameSnapshot.size > 0) {
+                  alert('Username is already in use. Please use a different username.');
+                  this.username = '';
+                  return;
+                }
+
+                await updateProfile(this.currentUser, { displayName: this.username });
+                await addDoc(usernamesCollection, { userId: this.userId, username: this.username });
+
+                console.log("doc added")
+                this.username = '';
+                window.location.reload();
+
+            } catch (error) {
+                alert(error.message);
             }
         }
     },
