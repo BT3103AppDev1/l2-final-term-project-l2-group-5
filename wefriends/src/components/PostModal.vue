@@ -25,6 +25,7 @@
 
 <script>
 import { getFirestore, collection, addDoc, serverTimestamp, getDocs } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
+import { getAuth } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
 
 export default {
   data() {
@@ -68,11 +69,14 @@ export default {
         return;
       }
 
+      const currentUser = getAuth().currentUser;
+
       const post = {
         id: (this.numberOfPosts + 1).toString(),
         title: this.title,
         body: this.body,
         tag: this.selectedTag,
+        userId: currentUser.uid,
         timestamp: serverTimestamp()
       };
       try {

@@ -31,6 +31,7 @@
 
 <script>
 import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp, orderBy } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
+import { getAuth } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
 import Navbar from '@/components/Navbar.vue'
 import TopBar from '@/components/TopBar.vue'
 import { useRouter } from 'vue-router';
@@ -101,6 +102,8 @@ export default {
     },
     async submitComment() {
       if (this.newComment.trim() === '') return;
+
+      const currentUser = getAuth().currentUser;
       
       try {
         const db = getFirestore();
@@ -108,6 +111,7 @@ export default {
         await addDoc(collection(db, 'comments'), {
           postId: postId,
           content: this.newComment.trim(),
+          userId: currentUser.uid,
           timestamp: serverTimestamp()
         });
         this.newComment = ''; // Clear input after submission
