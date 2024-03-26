@@ -26,12 +26,34 @@
         </form>
         <div class="signup-prompt">
             Don't have an account? <router-link to="/signup" class="signup-link">Sign Up</router-link>
-        </div>        
+        </div>
+        <!-- Firebase UI -->
+        <br>
+        <div class="google">or</div>
+        <div id="firebaseui-auth-container"></div>
     </div>
 </template>
 
 
 <style scoped>
+.google {
+  display: flex;
+  align-items: center;
+  text-align: center;
+}
+.google::before,
+.google::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #000;
+}
+.google:not(:empty)::before {
+  margin-right: .25em;
+}
+.google:not(:empty)::after {
+  margin-left: .25em;
+}
+
 #left-half {
     position: absolute;
     left: 0;
@@ -85,7 +107,7 @@
 
 #login-button {
     background-color: #436850;
-    border: none; 
+    border: none;
     border-radius: 10px;
     width: 20%;
     height: 40px;
@@ -93,8 +115,8 @@
     color: white;
     text-align: center;
     display: block;
-    margin: 10px auto; 
-    cursor: pointer; 
+    margin: 10px auto;
+    cursor: pointer;
 }
 
 .signup-prompt {
@@ -115,44 +137,66 @@
     align-items: center;
     justify-content: center;
 }
-
 </style>
 
 
 <script>
 import firebaseApp from '@/firebase'
-import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence} from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
+import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
 import { useRouter } from 'vue-router';
+import firebase from '@/uifire.js';
+import 'firebase/compat/auth';
+import * as firebaseui from 'firebaseui';
+import 'firebaseui/dist/firebaseui.css';
 
 const auth = getAuth(firebaseApp);
 setPersistence(auth, browserLocalPersistence);
 
 export default {
-  data() {
-    return {
-      email: '',
-      password: '',
-      errorMessage:'',
-    };
-  },
-  setup() {
-    const router = useRouter();
-    return { router };
-  },
-  methods: {
-    async submitForm() {
-    try {
-        await signInWithEmailAndPassword(auth, this.email, this.password);
-        this.errorMessage = '';
-        this.$router.push('/home');
-    } catch (error) {
-        if (error.code === 'auth/wrong-password') {
-            this.errorMessage = 'Sign in unsuccessful. <br>The email or password you entered is not valid. Please try again.';
+    data() {
+        return {
+            email: '',
+            password: '',
+            errorMessage: '',
+        };
+    },
+    mounted() {
+        const uiContainer = document.getElementById("firebaseui-auth-container");
+        uiContainer.innerHTML = '';
+
+        let ui = firebaseui.auth.AuthUI.getInstance();
+        if (ui) {
+            ui.reset(); 
         } else {
-            this.errorMessage = 'Sign in unsuccessful. <br>The email or password you entered is not valid. Please try again.';
+            ui = new firebaseui.auth.AuthUI(firebase.auth());
+        }
+
+        var uiConfig = {
+            signInSuccessUrl: '/home',
+            signInOptions: [
+                firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+            ]
+        };
+        ui.start("#firebaseui-auth-container", uiConfig);
+    },
+    setup() {
+        const router = useRouter();
+        return { router };
+    },
+    methods: {
+        async submitForm() {
+            try {
+                await signInWithEmailAndPassword(auth, this.email, this.password);
+                this.errorMessage = '';
+                this.$router.push('/home');
+            } catch (error) {
+                if (error.code === 'auth/wrong-password') {
+                    this.errorMessage = 'Sign in unsuccessful. <br>The email or password you entered is not valid. Please try again.';
+                } else {
+                    this.errorMessage = 'Sign in unsuccessful. <br>The email or password you entered is not valid. Please try again.';
+                }
+            }
         }
     }
-    }
-}
 }
 </script>

@@ -14,10 +14,6 @@
 
     <form @submit.prevent="register">
       <div class="rounded-input">
-        <input type="text" placeholder="Username..." v-model="username" />
-      </div>
-
-      <div class="rounded-input">
         <input type="email" placeholder="Email address..." v-model="email" />
       </div>
 
@@ -39,10 +35,33 @@
     <div v-if="registrationSuccess" class="success-message">
       Registration successful! You can now log in.
     </div>
+
+    <!-- Firebase UI -->
+    <br>
+        <div class="google">or</div>
+        <div id="firebaseui-auth-container"></div>
   </div>
 </template>
 
 <style scoped>
+.google {
+  display: flex;
+  align-items: center;
+  text-align: center;
+}
+.google::before,
+.google::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #000;
+}
+.google:not(:empty)::before {
+  margin-right: .25em;
+}
+.google:not(:empty)::after {
+  margin-left: .25em;
+}
+
 #left-half {
     position: absolute;
     left: 0;
@@ -137,9 +156,13 @@
 </style>
 
 <script>
-import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
+import { getAuth, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
 import { getFirestore, collection, addDoc, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
 import firebaseApp from "@/firebase";
+import firebase from '@/uifire.js';
+import 'firebase/compat/auth';
+import * as firebaseui from 'firebaseui';
+import 'firebaseui/dist/firebaseui.css';
 
 const db = getFirestore(firebaseApp);
 const usernamesCollection = collection(db, 'usernames');
@@ -151,13 +174,31 @@ export default {
       email: '',
       password: '',
       confirmPassword: '',
-      username: '',
       registrationSuccess: false,
     };
   },
+  mounted() {
+    const uiContainer = document.getElementById("firebaseui-auth-container");
+    uiContainer.innerHTML = '';
+
+    let ui = firebaseui.auth.AuthUI.getInstance();
+    if (ui) {
+        ui.reset(); 
+    } else {
+        ui = new firebaseui.auth.AuthUI(firebase.auth());
+    }
+
+    var uiConfig = {
+        signInSuccessUrl: '/home',
+        signInOptions: [
+            firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+        ]
+    };
+    ui.start("#firebaseui-auth-container", uiConfig);
+  },
   computed: {
     fieldsFilled() {
-      return !(this.email && this.password && this.confirmPassword && this.username);
+      return !(this.email && this.password && this.confirmPassword);
     },
   },
   methods: {
@@ -170,24 +211,12 @@ export default {
       }
 
       try {
-        const usernameQuery = query(usernamesCollection, where('username', '==', this.username));
-        const usernameSnapshot = await getDocs(usernameQuery);
-        
-        if (usernameSnapshot.size > 0) {
-          alert('Username is already in use. Please use a different username.');
-          this.username = '';
-          return;
-        }
-
         const userCredential = await createUserWithEmailAndPassword(auth, this.email, this.password);
-        await updateProfile(userCredential.user, { displayName: this.username });
-        await addDoc(usernamesCollection, { userId: userCredential.user.uid, username: this.username });
 
         this.registrationSuccess = true;
         this.email = '';
         this.password = '';
         this.confirmPassword = '';
-        this.username = '';
 
       } catch (error) {
         if (error.code === 'auth/email-already-in-use') {
