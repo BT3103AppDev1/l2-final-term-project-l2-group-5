@@ -11,12 +11,13 @@
         <div class="main-post">
           <h1 class="post-title">{{ post.title }}</h1>
           <p class="post-body">{{ post.body }}</p>
+          <p class="post-details">Posted by: {{ post.username }} at {{ post.formattedTimestamp }}</p>
         </div>
 
         <div class="comment-container" :style="{ maxHeight: commentContainerMaxHeight + 'px' }">
           <div v-for="comment in comments" :key="comment.id" class="comment">
-            <p>{{ comment.content }}</p>
-            <p>Posted at: {{ comment.formattedTimestamp }}</p>
+            <p><b>{{ comment.content }}</b></p>
+            <p>Posted by: {{ comment.username }} at {{ comment.formattedTimestamp }}</p>
           </div>
         </div>
 
@@ -30,7 +31,7 @@
 </template>
 
 <script>
-import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp, orderBy } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
+import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
 import { getAuth } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
 import Navbar from '@/components/Navbar.vue'
 import TopBar from '@/components/TopBar.vue'
@@ -75,14 +76,17 @@ export default {
 
       if (!postSnapshot.empty) {
         postSnapshot.forEach((doc) => {
-          this.post = doc.data();
+          this.post = {
+            ...doc.data(),
+            formattedTimestamp: (new Date(doc.data().timestamp.toDate())).toLocaleString()
+          };
         });
       } else {
         console.log('No such document!');
       }
 
       // Load Respective Comments
-      this.loadComments(); // Load comments initially
+      this.loadComments();
 
     } catch (error) {
       console.error('Error getting document:', error);
@@ -112,6 +116,7 @@ export default {
           postId: postId,
           content: this.newComment.trim(),
           userId: currentUser.uid,
+          username: currentUser.displayName,
           timestamp: serverTimestamp()
         });
         this.newComment = ''; // Clear input after submission
@@ -221,6 +226,12 @@ export default {
 }
 
 .post-body {
+  line-height: 1.5;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.post-details {
   line-height: 1.5;
   padding-left: 20px;
   padding-right: 20px;

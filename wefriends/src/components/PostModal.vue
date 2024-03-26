@@ -77,6 +77,7 @@ export default {
         body: this.body,
         tag: this.selectedTag,
         userId: currentUser.uid,
+        username: currentUser.displayName,
         timestamp: serverTimestamp()
       };
       try {
