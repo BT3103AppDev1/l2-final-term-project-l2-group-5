@@ -8,6 +8,9 @@
           <div class="tag-container">
             <span class="tag" :class="post.tag">{{ post.tag }}</span>
           </div>
+          <div class="score-container">
+            <span class="score">Score: {{ calculateScore(post) }}</span>
+          </div>
         </div>
       </div>
     </a>
@@ -24,6 +27,9 @@ export default {
       } else {
         return text;
       }
+    },
+    calculateScore(post) {
+      return post.upvotes - post.downvotes;
     }
   }
 };
@@ -50,6 +56,20 @@ export default {
 
 .post-content {
   margin-bottom: 10px;
+  position:relative;
+}
+
+.score-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.score {
+  background-color: #436850;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
 }
 
 .truncated {
