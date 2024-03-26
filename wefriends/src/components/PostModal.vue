@@ -78,6 +78,8 @@ export default {
         tag: this.selectedTag,
         userId: currentUser.uid,
         username: currentUser.displayName,
+        upvotes: 0,
+        downvotes: 0,
         timestamp: serverTimestamp()
       };
       try {

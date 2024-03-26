@@ -1,26 +1,28 @@
 <template>
   <div class="post-container">
     <Navbar id="navbar" />
-
     <div class="post-content">
       <TopBar :pageName="pageName" id="topbar" />
-      
       <div class="content-wrapper">
         <button class="return-button" @click="navigate('/forum')">Return to Forum</button>
-
         <div class="main-post">
           <h1 class="post-title">{{ post.title }}</h1>
           <p class="post-body">{{ post.body }}</p>
           <p class="post-details">Posted by: {{ post.username }} at {{ post.formattedTimestamp }}</p>
         </div>
-
         <div class="comment-container" :style="{ maxHeight: commentContainerMaxHeight + 'px' }">
           <div v-for="comment in comments" :key="comment.id" class="comment">
             <p><b>{{ comment.content }}</b></p>
             <p>Posted by: {{ comment.username }} at {{ comment.formattedTimestamp }}</p>
           </div>
         </div>
-
+        <div class="vote-container">
+          <div class="vote">
+            <button @click="toggleUpvote" :class="{ active: upvoted }" class="upvote-btn">↑</button>
+            <span class="score">{{ calculateScore }}</span>
+            <button @click="toggleDownvote" :class="{ active: downvoted }" class="downvote-btn">↓</button>
+          </div>
+        </div>
         <div class="comment-form">
           <textarea v-model="newComment" placeholder="Add a comment"></textarea>
           <button @click="submitComment">Send</button>
@@ -31,38 +33,40 @@
 </template>
 
 <script>
-import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
+import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp, doc, updateDoc, increment, getDoc, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
 import { getAuth } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
-import Navbar from '@/components/Navbar.vue'
-import TopBar from '@/components/TopBar.vue'
+import Navbar from '@/components/Navbar.vue';
+import TopBar from '@/components/TopBar.vue';
 import { useRouter } from 'vue-router';
 
 export default {
   components: {
     Navbar,
-    TopBar
+    TopBar,
   },
   setup() {
-        const router = useRouter();
-        return { router };
+    const router = useRouter();
+    return { router };
   },
   data() {
     return {
+      id: '',
       post: {},
       comments: [],
       newComment: '',
       pageName: 'Post ' + this.$route.params.postId,
-      commentContainerMaxHeight: 0
+      commentContainerMaxHeight: 0,
+      upvotes: 0,
+      downvotes: 0,
+      upvoted: false,
+      downvoted: false
     };
   },
   mounted() {
-    // Calculate initial height
     this.adjustCommentContainerHeight();
-    // Listen for window resize events to dynamically adjust the height
     window.addEventListener('resize', this.adjustCommentContainerHeight);
   },
   beforeUnmount() {
-    // Remove window resize event listener when component is about to be destroyed
     window.removeEventListener('resize', this.adjustCommentContainerHeight);
   },
   async created() {
@@ -70,12 +74,14 @@ export default {
       const db = getFirestore();
       const postId = this.$route.params.postId;
 
-      // Load Post
       const postQuery = query(collection(db, 'posts'), where('id', '==', postId));
       const postSnapshot = await getDocs(postQuery);
 
       if (!postSnapshot.empty) {
         postSnapshot.forEach((doc) => {
+          this.id = doc.id;
+          this.upvotes = doc.data().upvotes;
+          this.downvotes = doc.data().downvotes;
           this.post = {
             ...doc.data(),
             formattedTimestamp: (new Date(doc.data().timestamp.toDate())).toLocaleString()
@@ -85,7 +91,6 @@ export default {
         console.log('No such document!');
       }
 
-      // Load Respective Comments
       this.loadComments();
 
     } catch (error) {
@@ -94,7 +99,7 @@ export default {
   },
   methods: {
     navigate(path) {
-        this.$router.push(path);
+      this.$router.push(path);
     },
     adjustCommentContainerHeight() {
       const mainPostHeight = document.querySelector('.main-post').offsetHeight;
@@ -119,8 +124,8 @@ export default {
           username: currentUser.displayName,
           timestamp: serverTimestamp()
         });
-        this.newComment = ''; // Clear input after submission
-        this.loadComments(); // Reload comments after submission
+        this.newComment = '';
+        this.loadComments();
       } catch (error) {
         console.error('Error adding comment:', error);
       }
@@ -141,13 +146,136 @@ export default {
             return { ...data, formattedTimestamp };
           });
 
-        // Sort comments by timestamp (latest to oldest)
         this.comments = postComments.sort((a, b) => {
           return b.timestamp - a.timestamp;
         });
       } catch (error) {
         console.error('Error loading comments:', error);
       }
+    },
+
+    async checkUserVote() {
+      const currentUser = getAuth().currentUser;
+      if (currentUser) {
+        const db = getFirestore();
+        const postId = this.id;
+        const userId = currentUser.uid;
+
+        const userActionRef = doc(db, 'user_actions', `${postId}_${userId}`);
+        const userActionDoc = await getDoc(userActionRef);
+        return userActionDoc.exists() ? userActionDoc.data().voted : null;
+      }
+      return null;
+    },
+
+    async toggleUpvote() {
+      const currentUser = getAuth().currentUser;
+      if (currentUser) {
+        const db = getFirestore();
+        const postId = this.id;
+        const userId = currentUser.uid;
+
+        const userVote = await this.checkUserVote();
+        if (!userVote) {
+          const userActionRef = doc(db, 'user_actions', `${postId}_${userId}`);
+          await setDoc(userActionRef, { postId, userId, voted: 'upvote' });
+
+          // Update the upvotes in the post document
+          const postRef = doc(db, 'posts', postId);
+          updateDoc(postRef, { upvotes: increment(1) });
+
+          // Update local state
+          this.upvotes++;
+          this.upvoted = true;
+        } else if (userVote === 'upvote') {
+          // User already upvoted, remove the upvote
+          const userActionRef = doc(db, 'user_actions', `${postId}_${userId}`);
+          await deleteDoc(userActionRef);
+
+          // Update the upvotes in the post document
+          const postRef = doc(db, 'posts', postId);
+          updateDoc(postRef, { upvotes: increment(-1) });
+
+          // Update local state
+          this.upvotes--;
+          this.upvoted = false;
+        } else if (userVote === 'downvote') {
+          // User downvoted before, change to upvote
+          const userActionRef = doc(db, 'user_actions', `${postId}_${userId}`);
+          await updateDoc(userActionRef, { voted: 'upvote' });
+
+          // Update the upvotes and downvotes in the post document
+          const postRef = doc(db, 'posts', postId);
+          updateDoc(postRef, {
+            upvotes: increment(1),
+            downvotes: increment(-1)
+          });
+
+          // Update local state
+          this.upvotes++;
+          this.downvotes--;
+          this.upvoted = true;
+          this.downvoted = false;
+        }
+      }
+    },
+
+    async toggleDownvote() {
+      const currentUser = getAuth().currentUser;
+      if (currentUser) {
+        const db = getFirestore();
+        const postId = this.id;
+        const userId = currentUser.uid;
+
+        const userVote = await this.checkUserVote();
+        if (!userVote) {
+          const userActionRef = doc(db, 'user_actions', `${postId}_${userId}`);
+          await setDoc(userActionRef, { postId, userId, voted: 'downvote' });
+
+          // Update the downvotes in the post document
+          const postRef = doc(db, 'posts', postId);
+          updateDoc(postRef, { downvotes: increment(1) });
+
+          // Update local state
+          this.downvotes++;
+          this.downvoted = true;
+        } else if (userVote === 'downvote') {
+          // User already downvoted, remove the downvote
+          const userActionRef = doc(db, 'user_actions', `${postId}_${userId}`);
+          await deleteDoc(userActionRef);
+
+          // Update the downvotes in the post document
+          const postRef = doc(db, 'posts', postId);
+          updateDoc(postRef, { downvotes: increment(-1) });
+
+          // Update local state
+          this.downvotes--;
+          this.downvoted = false;
+        } else if (userVote === 'upvote') {
+          // User upvoted before, change to downvote
+          const userActionRef = doc(db, 'user_actions', `${postId}_${userId}`);
+          await updateDoc(userActionRef, { voted: 'downvote' });
+
+          // Update the upvotes and downvotes in the post document
+          const postRef = doc(db, 'posts', postId);
+          updateDoc(postRef, {
+            upvotes: increment(-1),
+            downvotes: increment(1)
+          });
+
+          // Update local state
+          this.upvotes--;
+          this.downvotes++;
+          this.upvoted = false;
+          this.downvoted = true;
+        }
+      }
+    },
+  },
+
+  computed: {
+    calculateScore() {
+      return this.upvotes - this.downvotes;
     }
   }
 };
@@ -312,5 +440,25 @@ button:hover {
 
 .comment-container::-webkit-scrollbar-thumb:hover {
   background-color: #555;
+}
+
+.vote-container {
+  position: fixed;
+  bottom: 2%;
+  left: 21%;
+  margin-left: 20px;
+  margin-bottom: 20px;
+}
+
+.upvote-btn, .downvote-btn {
+  font-size: x-large;
+  font-weight: bold;
+}
+
+.score {
+  margin-left:30px;
+  margin-right:30px;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: larger;
 }
 </style>

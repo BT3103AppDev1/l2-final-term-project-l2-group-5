@@ -14,6 +14,7 @@
             <select v-model="sortOrder" class="sort-dropdown">
               <option value="desc" class="sort-options">Sort: Latest to Oldest</option>
               <option value="asc" class="sort-options">Sort: Oldest to Latest</option>
+              <option value="pop" class="sort-options">Sort: Most Popular</option>
             </select>
             
             <div class="tag-filter-container">
@@ -86,11 +87,15 @@ export default {
       return filtered;
     },
     sortedPosts() {
+      let sorted = this.filteredPosts.slice();
       if (this.sortOrder === 'desc') {
-        return this.filteredPosts.slice().sort((a, b) => b.timestamp - a.timestamp);
-      } else {
-        return this.filteredPosts.slice().sort((a, b) => a.timestamp - b.timestamp);
+        sorted.sort((a, b) => b.timestamp - a.timestamp);
+      } else if (this.sortOrder === 'asc') {
+        sorted.sort((a, b) => a.timestamp - b.timestamp);
+      } else if (this.sortOrder === 'pop') {
+        sorted.sort((a, b) => this.calculatePopularity(b) - this.calculatePopularity(a));
       }
+      return sorted;
     },
     displayedPosts() {
       const start = (this.currentPage - 1) * this.pageSize;
@@ -101,6 +106,10 @@ export default {
   },
 
   methods: {
+    calculatePopularity(post) {
+      // Calculate popularity score (upvotes - downvotes)
+      return post.upvotes - post.downvotes;
+    },
     fetchPosts() {
       const db = getFirestore();
       const postsCollection = collection(db, 'posts');
