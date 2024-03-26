@@ -4,7 +4,7 @@
     <div class="post-content">
       <TopBar :pageName="pageName" id="topbar" />
       <div class="content-wrapper">
-        <button class="return-button" @click="navigate('/forum')">Return to Forum</button>
+        <button class="return-button" @click="navigate('/forum')">Return</button>
         <div class="main-post">
           <h1 class="post-title">{{ post.title }}</h1>
           <p class="post-body">{{ post.body }}</p>
@@ -319,8 +319,7 @@ export default {
 
 .return-button {
   position: absolute;
-  top: 110px;
-  left: 370px;
+  left: 21.3%;
   background-color: #436850;
   color: white;
   padding: 10px 20px;
@@ -342,7 +341,7 @@ export default {
   margin-bottom: 10px;
   width:80%;
   align-self: flex;
-  margin-left:150px;
+  margin-left:12.2%;
   border-radius: 20px;
 }
 
@@ -385,7 +384,7 @@ export default {
   background-color: #f5f5f5;
   border: 1px solid #ccc;
   padding: 20px;
-  margin-left:200px;
+  margin-left:12.2%;
   margin-bottom: 20px;
   width:60%;
   display: flex;
@@ -460,5 +459,6 @@ button:hover {
   margin-right:30px;
   font-family: 'Nunito Sans', sans-serif;
   font-size: larger;
+  font-weight: bolder;
 }
 </style>
