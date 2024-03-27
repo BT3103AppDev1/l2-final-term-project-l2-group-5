@@ -149,7 +149,7 @@
     margin: 10px auto; 
     cursor: pointer; 
 }
-.default-image-display {
+#default-image-display {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -159,8 +159,8 @@
     width: 50%;
 }
 .default-image img {
-    width: 15%;
-    height: 15%;
+    width: 50%;
+    height: 50%;
 }
 #button {
     background-color: #436850;
