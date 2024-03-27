@@ -59,13 +59,15 @@
             </div>
             <!-- Button to open the selection menu -->
             <button id="change-profile-picture-btn" @click="toggleMenu">Change Profile Picture</button>
-            <div v-if="showMenu">
+            <div v-if="showMenu" id="toggle-menu">
+                <p>Choose a Profile Picture</p>
                 <!-- List of default profile pictures -->
                 <div id="default-image-display">
                     <div v-for="(image, index) in defaultPictureUrl" :key="index" class="default-image">
                         <img :src="image" @click="selectImage(image, index)">
                     </div>
                 </div>
+                <p>Or Upload Your Own!</p>
                 <!-- Input for uploading a new picture -->
                 <input type="file" @change="handleImageUpload" accept="image/*">
             </div>
@@ -131,8 +133,8 @@
     justify-content: center;
 }
 .profile-picture-preview {
-    width: 240px;
-    height: 240px;
+    width: 144px;
+    height: 144px;
     border-radius: 50%;
     object-fit: cover;
 }
@@ -149,18 +151,27 @@
     margin: 10px auto; 
     cursor: pointer; 
 }
+#toggle-menu p {
+    margin: 0;
+    margin-left: 21%;
+}
+#toggle-menu input {
+    margin-left: 21%;
+    margin-top: 1%;
+}
 #default-image-display {
     display: flex;
     justify-content: center;
     align-items: center;
 }
 .default-image {
-    flex: 1;
-    width: 50%;
+    height: 10%;
+    width: 10%;
+    margin: 1%;
 }
 .default-image img {
-    width: 50%;
-    height: 50%;
+    height: 100%;
+    width: 100%;
 }
 #button {
     background-color: #436850;
@@ -183,7 +194,6 @@
     display: flex;
     align-items: center;
     margin-top: 10%;
-    padding: 5%;
     cursor: pointer;
     justify-content: center;
 }
