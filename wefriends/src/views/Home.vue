@@ -56,16 +56,27 @@
             
             <button type="submit" id="button" :disabled="fieldsFilled" :class="{'disabled-button':fieldsFilled}">Create Profile</button>
         </form>
-        <input type="file" @change="handleImageUpload" accept="image/*">
         <div v-if="imageUrl">
             <img :src="imageUrl" alt="Preview" class="profile-picture-preview">
         </div>
+        
+
+        <!-- Button to open the selection menu -->
+        <button @click="toggleMenu">Choose Profile Picture</button>
+
+        <div v-if="showMenu">
+            <!-- List of default profile pictures -->
+            <div v-for="(image, index) in defaultPictureUrl" :key="index">
+                <img :src="image" @click="selectImage(image, index)" class="default-image">
+            </div>
+
+            <!-- Input for uploading a new picture -->
+            <input type="file" @change="handleImageUpload" accept="image/*">
+        </div>
+
         <div class="nav-option" @click="logout">
             <img src="@/assets/navbar/logout.png" alt="logout-icon">
             <p>Logout</p>
-        </div>
-        <div>
-            <img v-for="(url, index) in defaultPictureUrl" :key="index" :src="url" alt="Default Profile Picture" class="defaultProfilePicture">
         </div>
     </div>
     
@@ -297,6 +308,11 @@ import { getStorage, ref, getDownloadURL, uploadBytes } from 'https://www.gstati
 import { useRouter } from 'vue-router';
 import Navbar from '@/components/Navbar.vue'
 import TopBar from '@/components/TopBar.vue'
+import Boy from '@/assets/profile-pictures/boy.png'
+import Girl from '@/assets/profile-pictures/girl.png'
+import Cat from '@/assets/profile-pictures/cat.png'
+import Dog from '@/assets/profile-pictures/dog.png'
+import Alien from '@/assets/profile-pictures/alien.png'
 
 const db = getFirestore(firebaseApp);
 const usernamesCollection = collection(db, 'usernames');
@@ -322,13 +338,17 @@ export default {
             currentUser: null,
             defaultPictureUrl: [],
             defaultPictureRefs: ['ProfilePictures/boy.png', 'ProfilePictures/girl.png', 'ProfilePictures/cat.png', 'ProfilePictures/dog.png', 'ProfilePictures/alien.png', ],
+            defaultFiles: [Boy, Girl, Cat, Dog, Alien],
             userFile: null,
             imageUrl: null,
+            showMenu: false,
+            isProfilePicDefault: true,
+            selectedIndex: null,
         };
     },
     computed: {
         fieldsFilled() {
-            return !(this.username && this.userFile);
+            return !(this.username && this.imageUrl);
         },
     },
     setup() {
@@ -450,9 +470,17 @@ export default {
                 console.log("doc added")
                 this.username = '';
                 // upload profile picture
-                const fileRef = ref(storage, `ProfilePictures/${this.userId}`);
-                const snapshot = await uploadBytes(fileRef, this.userFile);
-                console.log('Uploaded a blob or file!', snapshot);
+                if (this.isProfilePicDefault) {
+                    const response = await fetch(`${this.defaultFiles[this.selectedIndex]}`);
+                    const imageBlob = await response.blob();
+                    const fileRef = ref(storage, `ProfilePictures/${this.userId}`);
+                    const snapshot = await uploadBytes(fileRef, imageBlob);
+                    console.log('Uploaded a blob or file!', snapshot);
+                } else {
+                    const fileRef = ref(storage, `ProfilePictures/${this.userId}`);
+                    const snapshot = await uploadBytes(fileRef, this.userFile);
+                    console.log('Uploaded a blob or file!', snapshot);
+                }
                 window.location.reload();
 
             } catch (error) {
@@ -478,6 +506,8 @@ export default {
                     console.error("Error fetching image URL:", error);
                 }
             }
+            this.imageUrl = this.defaultPictureUrl[0];
+            this.selectedIndex = 0;
         },
         // User inputs profile picture
         handleImageUpload(event) {
@@ -485,11 +515,23 @@ export default {
             if (file && file.type.startsWith('image/')) {
                 this.userFile = file;
                 this.imageUrl = URL.createObjectURL(file);
+                this.isProfilePicDefault = false;
             } else {
                 console.error("The selected file is not an image.");
                 this.userFile = null;
                 this.imageUrl = null;
             }
+        },
+        // menu to select profile picture
+        toggleMenu() {
+            this.showMenu = !this.showMenu;
+        },
+        // Set the selected image URL
+        selectImage(imageUrl, index) {
+            this.imageUrl = imageUrl;
+            this.selectedIndex = index;
+            this.showMenu = false;
+            this.isProfilePicDefault = true;
         },
     },
     components: {
