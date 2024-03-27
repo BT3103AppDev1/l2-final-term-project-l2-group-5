@@ -46,20 +46,133 @@
             </div>
         </div>
     </div>
+    <!-- User has no profile -->
     <div v-else>
-        <h1>There is no profile</h1>
-        <form @submit.prevent="createProfile">
-            <div class="rounded-input">
-                <input type="text" placeholder="Username..." v-model="username" />
+        <div id="left-half">
+            <img src="../assets/bckgrnd-img.png" alt="bckgrnd-img">
+        </div>
+        <div id="right-box">
+            <h1 class="intro-text">Welcome!</h1>
+            <h2 class="intro-text">Let's Create Your Profile!</h2>
+            <div v-if="imageUrl" class="profile-picture-div">
+                <img :src="imageUrl" alt="Preview" class="profile-picture-preview">
             </div>
-            
-            <button type="submit" id="button" :disabled="fieldsFilled" :class="{'disabled-button':fieldsFilled}">Create Profile</button>
-        </form>
+            <!-- Button to open the selection menu -->
+            <button id="change-profile-picture-btn" @click="toggleMenu">Change Profile Picture</button>
+            <div v-if="showMenu" id="toggle-menu">
+                <p>Choose a Profile Picture</p>
+                <!-- List of default profile pictures -->
+                <div id="default-image-display">
+                    <div v-for="(image, index) in defaultPictureUrl" :key="index" class="default-image">
+                        <img :src="image" @click="selectImage(image, index)">
+                    </div>
+                </div>
+                <p>Or Upload Your Own!</p>
+                <!-- Input for uploading a new picture -->
+                <input type="file" @change="handleImageUpload" accept="image/*">
+            </div>
+            <form @submit.prevent="createProfile">
+                <div class="rounded-input">
+                    <input type="text" placeholder="Username..." v-model="username" />
+                </div>
+                <button type="submit" id="button" :disabled="fieldsFilled" :class="{'disabled-button':fieldsFilled}">Create Profile</button>
+            </form>
+            <div class="nav-option" @click="logout">
+                <img src="@/assets/navbar/logout.png" alt="logout-icon">
+                <p>Logout</p>
+            </div>
+        </div>
     </div>
-    
 </template>
 
-<style>
+<style scoped>
+/* Create Profile Styles */
+#left-half {
+    position: absolute;
+    left: 0;
+    width: 50%;
+    height: 100%;
+    background-color: #436850;
+    padding: 20px;
+}
+#left-half img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+#right-box {
+    position: absolute;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    background-color: #FBFAF0;
+    padding: 20px;
+}
+.rounded-input input {
+    border-radius: 10px;
+    background-color: white;
+    width: 80%;
+    height: 30px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    border-left: 10%;
+}
+.rounded-input {
+    margin-left: 10%;
+    margin-top: 5%;
+}
+.intro-text {
+    margin-left: 10%;
+}
+.profile-picture-div {
+    display: flex;
+    justify-content: center;
+}
+.profile-picture-preview {
+    width: 144px;
+    height: 144px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+#change-profile-picture-btn {
+    background-color: #436850;
+    border: none; 
+    border-radius: 10px;
+    width: 30%;
+    height: 40px;
+    padding: 10px;
+    color: white;
+    text-align: center;
+    display: block;
+    margin: 10px auto; 
+    cursor: pointer; 
+}
+#toggle-menu p {
+    margin: 0;
+    margin-left: 21%;
+}
+#toggle-menu input {
+    margin-left: 21%;
+    margin-top: 1%;
+}
+#default-image-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.default-image {
+    height: 10%;
+    width: 10%;
+    margin: 1%;
+}
+.default-image img {
+    height: 100%;
+    width: 100%;
+}
 #button {
     background-color: #436850;
     border: none; 
@@ -77,7 +190,25 @@
   background-color: #e4e4e4;
   cursor: not-allowed;
 }
+.nav-option {
+    display: flex;
+    align-items: center;
+    margin-top: 10%;
+    cursor: pointer;
+    justify-content: center;
+}
+.nav-option:hover {
+    background-color: #f9f7e4;
+}
+.nav-option img {
+    margin-right: 8px;
+    margin-left: 8px;
+}
+.nav-option p {
+    margin: 8px;
+}
 
+/* Home Page Styles */
 #view {
     display: flex;
     justify-content: space-around;
@@ -254,12 +385,20 @@ ul {
 import firebaseApp from '@/firebase'
 import { getFirestore, collection, getDocs, addDoc, where, query, limit, setDoc, doc} from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
+import { getStorage, ref, getDownloadURL, uploadBytes } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-storage.js';
+import { useRouter } from 'vue-router';
 import Navbar from '@/components/Navbar.vue'
 import TopBar from '@/components/TopBar.vue'
+import Boy from '@/assets/profile-pictures/boy.png'
+import Girl from '@/assets/profile-pictures/girl.png'
+import Cat from '@/assets/profile-pictures/cat.png'
+import Dog from '@/assets/profile-pictures/dog.png'
+import Alien from '@/assets/profile-pictures/alien.png'
 
 const db = getFirestore(firebaseApp);
 const usernamesCollection = collection(db, 'usernames');
 const auth = getAuth(firebaseApp);
+const storage = getStorage(firebaseApp);
 
 export default {
     data() {
@@ -278,14 +417,27 @@ export default {
             username: '',
             userId: '',
             currentUser: null,
+            defaultPictureUrl: [],
+            defaultPictureRefs: ['ProfilePictures/boy.png', 'ProfilePictures/girl.png', 'ProfilePictures/cat.png', 'ProfilePictures/dog.png', 'ProfilePictures/alien.png', ],
+            defaultFiles: [Boy, Girl, Cat, Dog, Alien],
+            userFile: null,
+            imageUrl: null,
+            showMenu: false,
+            isProfilePicDefault: true,
+            selectedIndex: null,
         };
     },
     computed: {
         fieldsFilled() {
-        return !(this.username);
+            return !(this.username && this.imageUrl);
         },
     },
+    setup() {
+        const router = useRouter();
+        return { router };
+    },
     async mounted() {
+        // Retrieve User Details
         await new Promise((resolve, reject) => {
             const unsubscribe = auth.onAuthStateChanged(user => {
             unsubscribe();
@@ -300,7 +452,7 @@ export default {
             }
             });
         });
-
+        // Check if User has a Profile
         try {
             console.log(this.userId)
             const profileQuery = query(usernamesCollection, where('userId', '==', this.userId));
@@ -310,7 +462,9 @@ export default {
             // Profile with userId exists
             if (profileSnapshot.size > 0) {
               this.profile = true;
+            // user has no Profile
             } else {
+                this.fetchDefaultPictures();
                 return;
             }
         } catch (error) {
@@ -374,6 +528,7 @@ export default {
                 console.log("Error1!!:", error);
             }
         },
+        // create the user profile
         async createProfile() {
             console.log("attempting to create profile")
             auth.onAuthStateChanged((user) => {
@@ -386,24 +541,78 @@ export default {
             try {
                 const usernameQuery = query(usernamesCollection, where('username', '==', this.username));
                 const usernameSnapshot = await getDocs(usernameQuery);
-                
                 if (usernameSnapshot.size > 0) {
                   alert('Username is already in use. Please use a different username.');
                   this.username = '';
                   return;
                 }
-
                 await updateProfile(this.currentUser, { displayName: this.username });
                 await addDoc(usernamesCollection, { userId: this.userId, username: this.username });
-
                 console.log("doc added")
                 this.username = '';
+                // upload profile picture
+                if (this.isProfilePicDefault) {
+                    const response = await fetch(`${this.defaultFiles[this.selectedIndex]}`);
+                    const imageBlob = await response.blob();
+                    const fileRef = ref(storage, `ProfilePictures/${this.userId}`);
+                    const snapshot = await uploadBytes(fileRef, imageBlob);
+                    console.log('Uploaded a blob or file!', snapshot);
+                } else {
+                    const fileRef = ref(storage, `ProfilePictures/${this.userId}`);
+                    const snapshot = await uploadBytes(fileRef, this.userFile);
+                    console.log('Uploaded a blob or file!', snapshot);
+                }
                 window.location.reload();
 
             } catch (error) {
                 alert(error.message);
             }
-        }
+        },
+        logout() {
+            auth.signOut().then(() => {
+                console.log('Logged out');
+                this.$router.push('/');
+            }).catch((error) => {
+                console.error('Sign Out Error', error);
+            });
+        },
+        // Get default profile pictures
+        async fetchDefaultPictures() {
+            for (let defaultPicturePath of this.defaultPictureRefs) {
+                const defaultPictureRef = ref(storage, defaultPicturePath);
+                try {
+                    const url = await getDownloadURL(defaultPictureRef);
+                    this.defaultPictureUrl.push(url);
+                } catch (error) {
+                    console.error("Error fetching image URL:", error);
+                }
+            }
+            this.imageUrl = this.defaultPictureUrl[0];
+            this.selectedIndex = 0;
+        },
+        // User inputs profile picture
+        handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                this.userFile = file;
+                this.imageUrl = URL.createObjectURL(file);
+                this.isProfilePicDefault = false;
+            } else {
+                console.error("The selected file is not an image.");
+                this.userFile = null;
+            }
+        },
+        // menu to select profile picture
+        toggleMenu() {
+            this.showMenu = !this.showMenu;
+        },
+        // Set the selected image URL
+        selectImage(imageUrl, index) {
+            this.imageUrl = imageUrl;
+            this.selectedIndex = index;
+            this.showMenu = false;
+            this.isProfilePicDefault = true;
+        },
     },
     components: {
         Navbar,
