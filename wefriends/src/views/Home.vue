@@ -48,42 +48,120 @@
     </div>
     <!-- User has no profile -->
     <div v-else>
-        <h1>There is no profile</h1>
-        <form @submit.prevent="createProfile">
-            <div class="rounded-input">
-                <input type="text" placeholder="Username..." v-model="username" />
-            </div>
-            
-            <button type="submit" id="button" :disabled="fieldsFilled" :class="{'disabled-button':fieldsFilled}">Create Profile</button>
-        </form>
-        <div v-if="imageUrl">
-            <img :src="imageUrl" alt="Preview" class="profile-picture-preview">
+        <div id="left-half">
+            <img src="../assets/bckgrnd-img.png" alt="bckgrnd-img">
         </div>
-        
-
-        <!-- Button to open the selection menu -->
-        <button @click="toggleMenu">Choose Profile Picture</button>
-
-        <div v-if="showMenu">
-            <!-- List of default profile pictures -->
-            <div v-for="(image, index) in defaultPictureUrl" :key="index">
-                <img :src="image" @click="selectImage(image, index)" class="default-image">
+        <div id="right-box">
+            <h1 class="intro-text">Welcome!</h1>
+            <h2 class="intro-text">Let's Create Your Profile!</h2>
+            <div v-if="imageUrl" class="profile-picture-div">
+                <img :src="imageUrl" alt="Preview" class="profile-picture-preview">
             </div>
-
-            <!-- Input for uploading a new picture -->
-            <input type="file" @change="handleImageUpload" accept="image/*">
-        </div>
-
-        <div class="nav-option" @click="logout">
-            <img src="@/assets/navbar/logout.png" alt="logout-icon">
-            <p>Logout</p>
+            <!-- Button to open the selection menu -->
+            <button id="change-profile-picture-btn" @click="toggleMenu">Change Profile Picture</button>
+            <div v-if="showMenu">
+                <!-- List of default profile pictures -->
+                <div id="default-image-display">
+                    <div v-for="(image, index) in defaultPictureUrl" :key="index" class="default-image">
+                        <img :src="image" @click="selectImage(image, index)">
+                    </div>
+                </div>
+                <!-- Input for uploading a new picture -->
+                <input type="file" @change="handleImageUpload" accept="image/*">
+            </div>
+            <form @submit.prevent="createProfile">
+                <div class="rounded-input">
+                    <input type="text" placeholder="Username..." v-model="username" />
+                </div>
+                <button type="submit" id="button" :disabled="fieldsFilled" :class="{'disabled-button':fieldsFilled}">Create Profile</button>
+            </form>
+            <div class="nav-option" @click="logout">
+                <img src="@/assets/navbar/logout.png" alt="logout-icon">
+                <p>Logout</p>
+            </div>
         </div>
     </div>
-    
 </template>
 
 <style scoped>
 /* Create Profile Styles */
+#left-half {
+    position: absolute;
+    left: 0;
+    width: 50%;
+    height: 100%;
+    background-color: #436850;
+    padding: 20px;
+}
+#left-half img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+#right-box {
+    position: absolute;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    background-color: #FBFAF0;
+    padding: 20px;
+}
+.rounded-input input {
+    border-radius: 10px;
+    background-color: white;
+    width: 80%;
+    height: 30px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    border-left: 10%;
+}
+.rounded-input {
+    margin-left: 10%;
+    margin-top: 5%;
+}
+.intro-text {
+    margin-left: 10%;
+}
+.profile-picture-div {
+    display: flex;
+    justify-content: center;
+}
+.profile-picture-preview {
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+#change-profile-picture-btn {
+    background-color: #436850;
+    border: none; 
+    border-radius: 10px;
+    width: 30%;
+    height: 40px;
+    padding: 10px;
+    color: white;
+    text-align: center;
+    display: block;
+    margin: 10px auto; 
+    cursor: pointer; 
+}
+.default-image-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.default-image {
+    flex: 1;
+    width: 50%;
+}
+.default-image img {
+    width: 15%;
+    height: 15%;
+}
 #button {
     background-color: #436850;
     border: none; 
@@ -110,7 +188,7 @@
     justify-content: center;
 }
 .nav-option:hover {
-    background-color: #FBFAF0;
+    background-color: #f9f7e4;
 }
 .nav-option img {
     margin-right: 8px;
@@ -118,13 +196,6 @@
 }
 .nav-option p {
     margin: 8px;
-}
-.profile-picture-preview {
-  width: 240px;
-  height: 240px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-top: 10px;
 }
 
 /* Home Page Styles */
@@ -519,7 +590,6 @@ export default {
             } else {
                 console.error("The selected file is not an image.");
                 this.userFile = null;
-                this.imageUrl = null;
             }
         },
         // menu to select profile picture
