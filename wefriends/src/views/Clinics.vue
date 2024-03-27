@@ -28,6 +28,7 @@
 <script>
 import Navbar from '@/components/Navbar.vue'
 import TopBar from '@/components/TopBar.vue'
+import { toRaw } from 'vue';
 
 export default {
     components: {
@@ -70,14 +71,16 @@ export default {
             this.geocoder = new google.maps.Geocoder();
         },
         clearMarkers() {
-        // loop through the markers array and remove each from the map
-            for (let marker of this.markers) {
-                marker.setMap(null);
-            }
-            this.markers = []; // reset the markers array
+            this.markers.forEach((marker) => {
+                const rawMarker = toRaw(marker);
+                rawMarker.setMap(null);
+            });
+            this.markers = [];
         },
         fetchNearbyClinics() {
             this.clearMarkers();
+            this.clinics = [];
+            this.$nextTick(() => {
             this.geocoder.geocode({ 'address': this.postalCode + ', Singapore' }, (results, status) => {
                 if (status === 'OK') {
                     this.map.setCenter(results[0].geometry.location);
@@ -121,6 +124,7 @@ export default {
                     alert('Geocode was not successful for the following reason: ' + status);
                 }
             });
+        });
         }
     },
 }
