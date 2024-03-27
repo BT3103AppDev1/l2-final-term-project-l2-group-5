@@ -18,6 +18,7 @@
     margin-top: 0;
     margin-bottom: 0;
     align-self: center;
+    width: 20%;
 }
 #brand {
     display: flex;

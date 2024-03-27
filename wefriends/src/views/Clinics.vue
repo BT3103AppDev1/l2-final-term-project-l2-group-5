@@ -2,10 +2,12 @@
     <div id="view">
         <Navbar id="navbar" />
         <div id="content">
-            <h1>Find a Clinic</h1>
-            <input type="text" v-model="postalCode" placeholder="Enter Postal Code">
-            <button @click="fetchNearbyClinics">Search</button>
-            <div id="locations-map">
+            <TopBar :pageName="pageName" id="topbar" />
+            <div id="content-map">
+                <h1>Find a Clinic</h1>
+                <input type="text" v-model="postalCode" class="postal-input" placeholder="Enter Postal Code">
+                <button @click="fetchNearbyClinics">Search</button>
+                <div id="locations-map">
                 <div id="locations">
                 <ul class="clinic-list">
                     <li v-for="clinic in clinics" :key="clinic.place_id">
@@ -18,19 +20,23 @@
                 </div>
                 <div id="map"></div>
             </div>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
 import Navbar from '@/components/Navbar.vue'
+import TopBar from '@/components/TopBar.vue'
 
 export default {
     components: {
-        Navbar
+        Navbar,
+        TopBar
     },
     data() {
         return {
+            pageName: "Clinics Near Me",
             postalCode: '',
             map: null,
             service: null, // to use with Places Library
@@ -134,6 +140,20 @@ export default {
 #content {
     width: 80%;
     background-color: #ADBC9F;
+    display: flex;
+    flex-direction: column;
+}
+
+#content h1 {
+    margin-left: 15px;
+}
+
+#content button {
+    padding: 6px;
+    background-color: #12372A;
+    color: white;
+    border: 0;
+    border-radius: 5px;
 }
 
 #locations {
@@ -148,9 +168,9 @@ export default {
 }
 
 #map {
-    margin: 50px 20px 0px 20px;
+    margin: 50px 20px 70px 20px;
     width: 75%;
-    height: 400px;
+    height: 420px;
 }
 
 .clinic-list {
@@ -159,9 +179,18 @@ export default {
     margin-left: 10px;
 }
 
+.postal-input {
+    margin: 0px 7px 20px 15px;
+    border-radius: 5px;
+    padding: 6px;
+    width: 12%;
+    border: 0px;
+}
+
 .box {
     background-color: white;
     border-radius: 5px;
-    margin-bottom: 2px;
+    margin: 0px 0px 10px 6px;
+    padding: 1px 9px 1px 9px;
 }
 </style>
