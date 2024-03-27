@@ -46,6 +46,7 @@
             </div>
         </div>
     </div>
+    <!-- User has no profile -->
     <div v-else>
         <h1>There is no profile</h1>
         <form @submit.prevent="createProfile">
@@ -55,11 +56,23 @@
             
             <button type="submit" id="button" :disabled="fieldsFilled" :class="{'disabled-button':fieldsFilled}">Create Profile</button>
         </form>
+        <input type="file" @change="handleImageUpload" accept="image/*">
+        <div v-if="imageUrl">
+            <img :src="imageUrl" alt="Preview" class="profile-picture-preview">
+        </div>
+        <div class="nav-option" @click="logout">
+            <img src="@/assets/navbar/logout.png" alt="logout-icon">
+            <p>Logout</p>
+        </div>
+        <div>
+            <img v-for="(url, index) in defaultPictureUrl" :key="index" :src="url" alt="Default Profile Picture" class="defaultProfilePicture">
+        </div>
     </div>
     
 </template>
 
-<style>
+<style scoped>
+/* Create Profile Styles */
 #button {
     background-color: #436850;
     border: none; 
@@ -77,7 +90,33 @@
   background-color: #e4e4e4;
   cursor: not-allowed;
 }
+.nav-option {
+    display: flex;
+    align-items: center;
+    margin-top: 10%;
+    padding: 5%;
+    cursor: pointer;
+    justify-content: center;
+}
+.nav-option:hover {
+    background-color: #FBFAF0;
+}
+.nav-option img {
+    margin-right: 8px;
+    margin-left: 8px;
+}
+.nav-option p {
+    margin: 8px;
+}
+.profile-picture-preview {
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-top: 10px;
+}
 
+/* Home Page Styles */
 #view {
     display: flex;
     justify-content: space-around;
@@ -254,12 +293,15 @@ ul {
 import firebaseApp from '@/firebase'
 import { getFirestore, collection, getDocs, addDoc, where, query, limit, setDoc, doc} from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
+import { getStorage, ref, getDownloadURL, uploadBytes } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-storage.js';
+import { useRouter } from 'vue-router';
 import Navbar from '@/components/Navbar.vue'
 import TopBar from '@/components/TopBar.vue'
 
 const db = getFirestore(firebaseApp);
 const usernamesCollection = collection(db, 'usernames');
 const auth = getAuth(firebaseApp);
+const storage = getStorage(firebaseApp);
 
 export default {
     data() {
@@ -278,14 +320,23 @@ export default {
             username: '',
             userId: '',
             currentUser: null,
+            defaultPictureUrl: [],
+            defaultPictureRefs: ['ProfilePictures/boy.png', 'ProfilePictures/girl.png', 'ProfilePictures/cat.png', 'ProfilePictures/dog.png', 'ProfilePictures/alien.png', ],
+            userFile: null,
+            imageUrl: null,
         };
     },
     computed: {
         fieldsFilled() {
-        return !(this.username);
+            return !(this.username && this.userFile);
         },
     },
+    setup() {
+        const router = useRouter();
+        return { router };
+    },
     async mounted() {
+        // Retrieve User Details
         await new Promise((resolve, reject) => {
             const unsubscribe = auth.onAuthStateChanged(user => {
             unsubscribe();
@@ -300,7 +351,7 @@ export default {
             }
             });
         });
-
+        // Check if User has a Profile
         try {
             console.log(this.userId)
             const profileQuery = query(usernamesCollection, where('userId', '==', this.userId));
@@ -310,7 +361,9 @@ export default {
             // Profile with userId exists
             if (profileSnapshot.size > 0) {
               this.profile = true;
+            // user has no Profile
             } else {
+                this.fetchDefaultPictures();
                 return;
             }
         } catch (error) {
@@ -374,6 +427,7 @@ export default {
                 console.log("Error1!!:", error);
             }
         },
+        // create the user profile
         async createProfile() {
             console.log("attempting to create profile")
             auth.onAuthStateChanged((user) => {
@@ -386,24 +440,57 @@ export default {
             try {
                 const usernameQuery = query(usernamesCollection, where('username', '==', this.username));
                 const usernameSnapshot = await getDocs(usernameQuery);
-                
                 if (usernameSnapshot.size > 0) {
                   alert('Username is already in use. Please use a different username.');
                   this.username = '';
                   return;
                 }
-
                 await updateProfile(this.currentUser, { displayName: this.username });
                 await addDoc(usernamesCollection, { userId: this.userId, username: this.username });
-
                 console.log("doc added")
                 this.username = '';
+                // upload profile picture
+                const fileRef = ref(storage, `ProfilePictures/${this.userId}`);
+                const snapshot = await uploadBytes(fileRef, this.userFile);
+                console.log('Uploaded a blob or file!', snapshot);
                 window.location.reload();
 
             } catch (error) {
                 alert(error.message);
             }
-        }
+        },
+        logout() {
+            auth.signOut().then(() => {
+                console.log('Logged out');
+                this.$router.push('/');
+            }).catch((error) => {
+                console.error('Sign Out Error', error);
+            });
+        },
+        // Get default profile pictures
+        async fetchDefaultPictures() {
+            for (let defaultPicturePath of this.defaultPictureRefs) {
+                const defaultPictureRef = ref(storage, defaultPicturePath);
+                try {
+                    const url = await getDownloadURL(defaultPictureRef);
+                    this.defaultPictureUrl.push(url);
+                } catch (error) {
+                    console.error("Error fetching image URL:", error);
+                }
+            }
+        },
+        // User inputs profile picture
+        handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                this.userFile = file;
+                this.imageUrl = URL.createObjectURL(file);
+            } else {
+                console.error("The selected file is not an image.");
+                this.userFile = null;
+                this.imageUrl = null;
+            }
+        },
     },
     components: {
         Navbar,
