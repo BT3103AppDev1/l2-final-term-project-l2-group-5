@@ -9,14 +9,16 @@
                 <button @click="fetchNearbyClinics">Search</button>
                 <div id="locations-map">
                 <div id="locations">
-                <ul class="clinic-list">
+                    <ul class="clinic-list">
                     <li v-for="clinic in clinics" :key="clinic.place_id">
                         <div class="box">
-                            <h3>{{ clinic.name }}</h3>
-                            <p>{{ clinic.vicinity }}</p>
+                        <h3>{{ clinic.name }}</h3>
+                        <p>{{ clinic.vicinity }}</p>
+                        <p v-if="clinic.distance"><i>Distance: {{ clinic.distance }} away</i></p>
+                        <p v-else>Distance: Calculating...</p>
                         </div>
                     </li>
-                </ul>
+                    </ul>
                 </div>
                 <div id="map"></div>
             </div>
@@ -44,6 +46,7 @@ export default {
             geocoder: null, // to use for geocoding
             markers: [],
             clinics: [], // list of nearby clinics
+            distanceMatrixService: null,
         }
     },
     mounted() {
@@ -69,6 +72,7 @@ export default {
             });
             this.service = new google.maps.places.PlacesService(this.map);
             this.geocoder = new google.maps.Geocoder();
+            this.distanceMatrixService = new google.maps.DistanceMatrixService();
         },
         clearMarkers() {
             this.markers.forEach((marker) => {
@@ -79,55 +83,84 @@ export default {
         },
         fetchNearbyClinics() {
             this.clearMarkers();
-            this.clinics = [];
-            this.$nextTick(() => {
-            this.geocoder.geocode({ 'address': this.postalCode + ', Singapore' }, (results, status) => {
-                if (status === 'OK') {
-                    this.map.setCenter(results[0].geometry.location);
+            this.clinics = []; // clear previous clinic data
+            this.geocoder.geocode({ 'address': this.postalCode + ', Singapore' }, (geocodeResults, geocodeStatus) => {
+            if (geocodeStatus === 'OK') {
+                this.map.setCenter(geocodeResults[0].geometry.location);
 
-                    // marker for current location
-                    const locationMarker = new google.maps.Marker({
-                        map: this.map,
-                        position: results[0].geometry.location,
-                        icon: {                             
-                            url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
-                        },
-                        title: 'Your Location'
+                const locationMarker = new google.maps.Marker({
+                    map: this.map,
+                    position: geocodeResults[0].geometry.location,
+                    icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+                    title: 'Your Location',
                     });
-                    this.markers.push(locationMarker);
 
-                    const request = {
-                        location: results[0].geometry.location,
-                        radius: '2000', // 2 km radius
-                        type: ['hospital']
-                    };
-                    this.service.nearbySearch(request, (results, status) => {
-                if (status === google.maps.places.PlacesServiceStatus.OK) {
-                    this.clinics = results;
+                this.markers.push(locationMarker);
 
-                    results.forEach(place => {
-                        
-                        const marker = new google.maps.Marker({
-                            position: place.geometry.location,
-                            map: this.map,
-                            title: place.name
+                const request = {
+                    location: geocodeResults[0].geometry.location,
+                    radius: '2000', // within 2000m
+                    type: ['hospital'],
+                };
+
+                this.service.nearbySearch(request, (searchResults, searchStatus) => {
+                if (searchStatus === google.maps.places.PlacesServiceStatus.OK) {
+                    this.clinics = searchResults;
+
+                    const origins = [geocodeResults[0].geometry.location];
+                    const destinations = searchResults.map(clinic => clinic.geometry.location);
+
+                    // getting the distance from nearby clinics to origin
+                    this.distanceMatrixService.getDistanceMatrix({ 
+                            origins: origins,
+                            destinations: destinations,
+                            travelMode: google.maps.TravelMode.DRIVING,
+                        }, (distanceResults, distanceStatus) => {
+                            if (distanceStatus === 'OK') {
+                                const distanceData = distanceResults.rows[0].elements;
+
+                                this.clinics.forEach((clinic, index) => {
+                                    const element = distanceData[index];
+                                    if (element.status === 'OK') {
+                                        // distance text for display
+                                        clinic.distance = element.distance.text;
+                                        // transform to value for sorting purpose
+                                        clinic.distanceValue = element.distance.value;
+                                    } else {
+                                        clinic.distance = 'Distance not available';
+                                        // to sort last if distance not available
+                                        clinic.distanceValue = Number.MAX_VALUE;
+                                    }
+                                });
+
+                                // sort nearby clinics according to distance
+                                this.clinics.sort((a, b) => a.distanceValue - b.distanceValue);
+
+                                // trigger reactivity
+                                this.clinics = [...this.clinics];
+                            } else {
+                                console.error('Error with distance matrix:', distanceStatus);
+                            }
                         });
-    
-                        marker.addListener('click', () => {
-                            // show place details when clicked
-                            alert(`Place name: ${place.name}`);
-                        });
-                        this.markers.push(marker);
-                        });
+
+                    searchResults.forEach((place, index) => {
+                    const marker = new google.maps.Marker({
+                        position: place.geometry.location,
+                        map: this.map,
+                        title: place.name,
+                    });
+
+                    marker.addListener('click', () => {
+                        alert(`Place name: ${place.name}`);
+                    });
+                    this.markers.push(marker);
+                    });
                     }});
                 } else {
-                    alert('Geocode was not successful for the following reason: ' + status);
-                }
-            });
-        });
-        }
-    },
-}
+                    alert('Geocode was not successful for the following reason: ' + geocodeStatus);
+            }});
+        },
+    }}
 </script>
 
 <style scoped>
@@ -176,7 +209,6 @@ export default {
     width: 75%;
     height: 420px;
 }
-
 .clinic-list {
     list-style-type: none; /* removes the bullets */
     padding: 0; /* removes default padding */
