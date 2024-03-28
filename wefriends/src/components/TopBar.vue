@@ -13,6 +13,7 @@
     background-color: white;
     display: flex;
 }
+
 #pageName {
     margin-left: 2%;
     margin-top: 0;
@@ -20,17 +21,20 @@
     align-self: center;
     width: 20%;
 }
+
 #brand {
     display: flex;
     align-items: center;
     justify-content: center;
     margin-left: 65%;
 }
+
 #logo {
     width: 80%;
     height: 80%;
     margin-right: 2%;
 }
+
 #name {
     margin: 0;
 }

@@ -17,7 +17,7 @@
             </div>
             <div id="inner-container">
               <div v-if="entries" id="entries-list">
-                  <p>{{ entries.content }}</p>
+                <p>{{ entries.content }}</p>
               </div>
               <div v-else>
                 How was your day?
@@ -37,17 +37,21 @@
   justify-content: space-around;
   height: 100vh;
 }
+
 #navbar {
   width: 20%;
 }
+
 #right-side {
   width: 80%;
   display: flex;
   flex-direction: column;
 }
+
 #topbar {
   height: 5%;
 }
+
 #content {
   background-color: #adbc9f;
   height: 90%;
