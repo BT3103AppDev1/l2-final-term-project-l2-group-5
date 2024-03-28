@@ -138,7 +138,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .calendar {
   width: 100%;
   margin: 0 auto;
