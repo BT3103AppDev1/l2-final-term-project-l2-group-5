@@ -54,7 +54,7 @@
 
 #content {
   background-color: #adbc9f;
-  height: 90%;
+  height: 95%;
 }
 
 #add-button {

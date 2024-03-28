@@ -228,7 +228,7 @@
 
 #content {
     background-color: #ADBC9F;
-    height: 90%;
+    height: 95%;
 }
 
 #main {
