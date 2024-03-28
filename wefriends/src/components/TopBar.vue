@@ -24,7 +24,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-left: 78%;
+    margin-left: 65%;
 }
 #logo {
     width: 80%;
