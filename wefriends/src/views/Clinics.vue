@@ -170,6 +170,10 @@ export default {
     height: 100%;
 }
 
+#topbar {
+  height: 5%;
+}
+
 #navbar {
     width: 20%;
 }
