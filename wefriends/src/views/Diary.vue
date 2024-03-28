@@ -44,7 +44,6 @@
   width: 80%;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
 }
 #topbar {
   height: 5%;
