@@ -27,10 +27,10 @@
                                         stroke-linejoin="round" />
                                 </svg>
                             </div>
-                            <hr class="line">
                             <div class="content" v-show="activeBox === 'about'">
                                 <p class="information">{{ aboutMentalHealthContent }}</p>
                             </div>
+                            <hr class="line">
                         </div>
 
                         <div class="box" :class="{ active: activeBox === 'prevention' }">
@@ -45,7 +45,6 @@
                                         stroke-linejoin="round" />
                                 </svg>
                             </div>
-                            <hr class="line">
                             <div class="content" v-show="activeBox === 'prevention'">
                                 <!-- Content for 'Prevention' box goes here -->
                                 <p class="information">Prevention plays a crucial role in mental health, benefiting everyone
@@ -127,6 +126,7 @@
                                 </p>
                             </div>
                         </div>
+                        <hr class="line">
 
                         <div class="box" :class="{ active: activeBox === 'research' }">
                             <div class="header" @click="toggleBox('research')"
@@ -140,7 +140,6 @@
                                         stroke-linejoin="round" />
                                 </svg>
                             </div>
-                            <hr class="line">
                             <div class="content" v-show="activeBox === 'research'">
                                 <div class="research-cards">
                                     <div class="research-card">
@@ -427,7 +426,5 @@ export default {
 .scrollable-content {
     max-height: calc(100% - 50px);
     /* Adjust the max-height as needed */
-    overflow-y: auto;
-    /* Enable vertical scrolling */
 }
 </style>
