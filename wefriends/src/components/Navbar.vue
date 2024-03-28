@@ -33,7 +33,6 @@
             </div>
         </div>
     </div>
-    
 </template>
 
 <style scoped>
@@ -43,6 +42,7 @@
     justify-content: space-around;
     align-items: center;
 }
+
 .nav-option {
     display: flex;
     align-items: center;
@@ -51,19 +51,24 @@
     padding: 5%;
     cursor: pointer;
 }
+
 .nav-option:hover {
     background-color: #FBFAF0;
 }
+
 .nav-option img {
     margin-right: 8px;
     margin-left: 8px;
 }
+
 .nav-option p {
     margin: 8px;
 }
+
 #space {
     height: 12vh;
 }
+
 .profile-picture-preview {
     width: 50px;
     height: 50px;
@@ -102,17 +107,17 @@ export default {
         // Retrieve User Details
         await new Promise((resolve, reject) => {
             const unsubscribe = auth.onAuthStateChanged(user => {
-            unsubscribe();
-            if (user) {
-                // User is signed in.
-                this.userId = user.uid;
-                this.userEmail = user.email;
-                resolve();
-            } else {
-                // No user is signed in.
-                console.log("No user is signed in.");
-                reject(new Error("No user is signed in."));
-            }
+                unsubscribe();
+                if (user) {
+                    // User is signed in.
+                    this.userId = user.uid;
+                    this.userEmail = user.email;
+                    resolve();
+                } else {
+                    // No user is signed in.
+                    console.log("No user is signed in.");
+                    reject(new Error("No user is signed in."));
+                }
             });
         });
         // Retrieve user profile
