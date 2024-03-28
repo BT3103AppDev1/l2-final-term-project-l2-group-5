@@ -10,7 +10,7 @@
                 <div id="locations-map">
                 <div id="locations">
                     <ul class="clinic-list">
-                    <li v-for="clinic in clinics" :key="clinic.place_id">
+                    <li v-for="clinic in clinics" :key="clinic.place_id" @click="zoomToClinic(clinic)">
                         <div class="box">
                         <h3>{{ clinic.name }}</h3>
                         <p>{{ clinic.vicinity }}</p>
@@ -155,10 +155,15 @@ export default {
                     });
                     this.markers.push(marker);
                     });
-                    }});
-                } else {
-                    alert('Geocode was not successful for the following reason: ' + geocodeStatus);
+                }});
+            } else {
+                alert('Geocode was not successful for the following reason: ' + geocodeStatus);
             }});
+        },
+        zoomToClinic(clinic) {
+            const clinicLocation = clinic.geometry.location;
+            this.map.setZoom(17);
+            this.map.panTo(clinicLocation);
         },
     }}
 </script>
@@ -191,11 +196,17 @@ export default {
     color: white;
     border: 0;
     border-radius: 5px;
+    transition: box-shadow 0.1s ease-out;
+}
+
+#content button:hover {
+    background-color: #12372A;
+    box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.3);
 }
 
 #locations {
     width: 20%;
-    height: 500px;
+    height: 75vh;
     overflow-y: auto; /* enable vertical scrolling */
     font-size: 10px;
 }
@@ -205,9 +216,9 @@ export default {
 }
 
 #map {
-    margin: 50px 20px 70px 20px;
-    width: 75%;
-    height: 420px;
+    margin: 0px 0px 0px 20px;
+    width: 85%;
+    height: 74vh;
 }
 .clinic-list {
     list-style-type: none; /* removes the bullets */
@@ -228,5 +239,12 @@ export default {
     border-radius: 5px;
     margin: 0px 0px 10px 6px;
     padding: 1px 9px 1px 9px;
+    box-shadow: 2px 2px 2px rgba(37, 80, 27, 0.5);
+    transition: box-shadow 0.2s ease-in-out;
+}
+
+.box:hover {
+  /* Box shadow for "pop up" effect on hover */
+  box-shadow: 0 6px 6px 0 rgba(0, 0, 0, 0.6);
 }
 </style>
