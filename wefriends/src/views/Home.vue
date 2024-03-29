@@ -57,9 +57,7 @@
             <div v-if="imageUrl" class="profile-picture-div">
                 <img :src="imageUrl" alt="Preview" class="profile-picture-preview">
             </div>
-            <!-- Button to open the selection menu -->
-            <button id="change-profile-picture-btn" @click="toggleMenu">Change Profile Picture</button>
-            <div v-if="showMenu" id="toggle-menu">
+            <div id="toggle-menu">
                 <p>Choose a Profile Picture</p>
                 <!-- List of default profile pictures -->
                 <div id="default-image-display">
@@ -159,6 +157,9 @@
     margin: 10px auto; 
     cursor: pointer; 
 }
+#toggle-menu {
+    margin-top: 2%;
+}
 #toggle-menu p {
     margin: 0;
     margin-left: 21%;
@@ -204,9 +205,17 @@
     margin-top: 10%;
     cursor: pointer;
     justify-content: center;
+    width: 30%;
+    margin-left: 35%;
 }
-.nav-option:hover {
-    background-color: #f9f7e4;
+.selected {
+    background-color: #436850;
+    color: white;
+    border-radius: 12px;
+}
+.nav-option:hover:not(.selected) {
+    background-color: #b8b8b8;
+    border-radius: 12px;
 }
 .nav-option img {
     margin-right: 8px;
@@ -433,7 +442,6 @@ export default {
             defaultFiles: [Boy, Girl, Cat, Dog, Alien],
             userFile: null,
             imageUrl: null,
-            showMenu: false,
             isProfilePicDefault: true,
             selectedIndex: null,
             showModal: false,
@@ -614,15 +622,10 @@ export default {
                 this.userFile = null;
             }
         },
-        // menu to select profile picture
-        toggleMenu() {
-            this.showMenu = !this.showMenu;
-        },
         // Set the selected image URL
         selectImage(imageUrl, index) {
             this.imageUrl = imageUrl;
             this.selectedIndex = index;
-            this.showMenu = false;
             this.isProfilePicDefault = true;
         },
         // Confirmation
