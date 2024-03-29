@@ -77,10 +77,18 @@
                 </div>
                 <button type="submit" id="button" :disabled="fieldsFilled" :class="{'disabled-button':fieldsFilled}">Create Profile</button>
             </form>
-            <div class="nav-option" @click="logout">
+            <div class="nav-option" @click="showModal = true">
                 <img src="@/assets/navbar/logout.png" alt="logout-icon">
                 <p>Logout</p>
             </div>
+            <Confirmation 
+                v-if="showModal"
+                :isVisible="showModal"
+                title="Confirm Logout"
+                message="Are you sure you want to log out?"
+                @confirm="logout"
+                @cancel="cancelModal"
+            />
         </div>
     </div>
 </template>
@@ -384,11 +392,14 @@ ul {
 <script>
 import firebaseApp from '@/firebase'
 import { getFirestore, collection, getDocs, addDoc, where, query, limit, setDoc, doc} from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
-import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
+import { getAuth, updateProfile } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
 import { getStorage, ref, getDownloadURL, uploadBytes } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-storage.js';
 import { useRouter } from 'vue-router';
+
 import Navbar from '@/components/Navbar.vue'
 import TopBar from '@/components/TopBar.vue'
+import Confirmation from '@/components/Confirmation.vue';
+
 import Boy from '@/assets/profile-pictures/boy.png'
 import Girl from '@/assets/profile-pictures/girl.png'
 import Cat from '@/assets/profile-pictures/cat.png'
@@ -425,6 +436,7 @@ export default {
             showMenu: false,
             isProfilePicDefault: true,
             selectedIndex: null,
+            showModal: false,
         };
     },
     computed: {
@@ -613,10 +625,15 @@ export default {
             this.showMenu = false;
             this.isProfilePicDefault = true;
         },
+        // Confirmation
+        cancelModal() {
+            this.showModal = false;
+        },
     },
     components: {
         Navbar,
-        TopBar
+        TopBar,
+        Confirmation
     }
 }
 </script>
