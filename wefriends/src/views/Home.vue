@@ -57,9 +57,7 @@
             <div v-if="imageUrl" class="profile-picture-div">
                 <img :src="imageUrl" alt="Preview" class="profile-picture-preview">
             </div>
-            <!-- Button to open the selection menu -->
-            <button id="change-profile-picture-btn" @click="toggleMenu">Change Profile Picture</button>
-            <div v-if="showMenu" id="toggle-menu">
+            <div id="toggle-menu">
                 <p>Choose a Profile Picture</p>
                 <!-- List of default profile pictures -->
                 <div id="default-image-display">
@@ -77,10 +75,18 @@
                 </div>
                 <button type="submit" id="button" :disabled="fieldsFilled" :class="{'disabled-button':fieldsFilled}">Create Profile</button>
             </form>
-            <div class="nav-option" @click="logout">
+            <div class="nav-option" @click="showModal = true">
                 <img src="@/assets/navbar/logout.png" alt="logout-icon">
                 <p>Logout</p>
             </div>
+            <Confirmation 
+                v-if="showModal"
+                :isVisible="showModal"
+                title="Confirm Logout"
+                message="Are you sure you want to log out?"
+                @confirm="logout"
+                @cancel="cancelModal"
+            />
         </div>
     </div>
 </template>
@@ -151,6 +157,9 @@
     margin: 10px auto; 
     cursor: pointer; 
 }
+#toggle-menu {
+    margin-top: 2%;
+}
 #toggle-menu p {
     margin: 0;
     margin-left: 21%;
@@ -196,9 +205,17 @@
     margin-top: 10%;
     cursor: pointer;
     justify-content: center;
+    width: 30%;
+    margin-left: 35%;
 }
-.nav-option:hover {
-    background-color: #f9f7e4;
+.selected {
+    background-color: #436850;
+    color: white;
+    border-radius: 12px;
+}
+.nav-option:hover:not(.selected) {
+    background-color: #b8b8b8;
+    border-radius: 12px;
 }
 .nav-option img {
     margin-right: 8px;
@@ -384,11 +401,14 @@ ul {
 <script>
 import firebaseApp from '@/firebase'
 import { getFirestore, collection, getDocs, addDoc, where, query, limit, setDoc, doc} from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
-import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
+import { getAuth, updateProfile } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
 import { getStorage, ref, getDownloadURL, uploadBytes } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-storage.js';
 import { useRouter } from 'vue-router';
+
 import Navbar from '@/components/Navbar.vue'
 import TopBar from '@/components/TopBar.vue'
+import Confirmation from '@/components/Confirmation.vue';
+
 import Boy from '@/assets/profile-pictures/boy.png'
 import Girl from '@/assets/profile-pictures/girl.png'
 import Cat from '@/assets/profile-pictures/cat.png'
@@ -422,9 +442,9 @@ export default {
             defaultFiles: [Boy, Girl, Cat, Dog, Alien],
             userFile: null,
             imageUrl: null,
-            showMenu: false,
             isProfilePicDefault: true,
             selectedIndex: null,
+            showModal: false,
         };
     },
     computed: {
@@ -602,21 +622,21 @@ export default {
                 this.userFile = null;
             }
         },
-        // menu to select profile picture
-        toggleMenu() {
-            this.showMenu = !this.showMenu;
-        },
         // Set the selected image URL
         selectImage(imageUrl, index) {
             this.imageUrl = imageUrl;
             this.selectedIndex = index;
-            this.showMenu = false;
             this.isProfilePicDefault = true;
+        },
+        // Confirmation
+        cancelModal() {
+            this.showModal = false;
         },
     },
     components: {
         Navbar,
-        TopBar
+        TopBar,
+        Confirmation
     }
 }
 </script>
