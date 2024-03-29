@@ -27,10 +27,18 @@
             </div>
             <div id="space">
             </div>
-            <div class="nav-option" @click="logout">
+            <div class="nav-option" @click="showModal = true">
                 <img src="@/assets/navbar/logout.png" alt="logout-">
                 <p>Logout</p>
             </div>
+            <Confirmation 
+                v-if="showModal"
+                :isVisible="showModal"
+                title="Confirm Logout"
+                message="Are you sure you want to log out?"
+                @confirm="logout"
+                @cancel="cancelModal"
+            />
         </div>
     </div>
 </template>
@@ -76,7 +84,7 @@
 }
 
 #space {
-    height: 12vh;
+    height: 32vh;
 }
 
 .profile-picture-preview {
@@ -90,10 +98,11 @@
 
 <script>
 import firebaseApp from "../firebase.js";
-import { getFirestore, doc, setDoc, query, where, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js"
+import { getFirestore, query, where, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js"
 import { getAuth } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
 import { getStorage, ref, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-storage.js';
 import { useRouter } from 'vue-router';
+import Confirmation from '@/components/Confirmation.vue';
 
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
@@ -112,6 +121,9 @@ import diary from "@/assets/navbar/diary.png";
 import clinics from "@/assets/navbar/clinics.png";
 
 export default {
+    components: {
+        Confirmation
+    },
     setup() {
         const router = useRouter();
         return { router };
@@ -128,7 +140,8 @@ export default {
                 '/forum': { normal: forum, selected: forumSelect },
                 '/diary': { normal: diary, selected: diarySelect },
                 '/clinics': { normal: clinics, selected: clinicsSelect }
-            }
+            },
+            showModal: false
         };
     },
     async created() {
@@ -193,7 +206,10 @@ export default {
         selectedIcon(path) {
             const icon = this.icons[path];
             return this.$route.path === path ? icon.selected : icon.normal;
-        }
+        },
+        cancelModal() {
+            this.showModal = false;
+        },
     }
 }
 
