@@ -13,15 +13,24 @@
           </div>
           <div id="current-entry">
             <div id="date-header">
-              Selected Date: {{ formatDate(selectedDate) }}
+              <h2>Selected Date: {{ formatDate(selectedDate) }}</h2>
             </div>
             <div id="inner-container">
-              <div v-if="entries" id="entries-list">
-                <p>{{ entries.content }}</p>
+              <div v-if="entry" id="entries-list">
+                <h2>Thoughts of the day:</h2>
+                <p>{{ entry }}</p>
               </div>
               <div v-else>
-                How was your day?
-                <button id="add-button" @click="handleAddClick">Add</button>
+                <p>How was your day?</p>
+                <div class="text-input">
+                  <form id="text-form">
+                    <textarea
+                      placeholder="Type Here..."
+                      v-model="description"
+                    ></textarea>
+                  </form>
+                  <button id="add-button" @click="save">Add</button>
+                </div>
               </div>
             </div>
           </div>
@@ -121,6 +130,32 @@
   border-top-right-radius: 25px;
   margin-top: 5%;
 }
+
+.text-input {
+  border-radius: 10px;
+  border: 1px solid black;
+}
+
+.text-input textarea {
+  background-color: #fbfada;
+}
+
+#text-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+textarea {
+  width: 95%;
+  border: none;
+  border-radius: 10px;
+  outline: none;
+  padding-left: 10px;
+  padding-top: 10px;
+  font-family: Arial, sans-serif;
+}
 </style>
 
 <script>
@@ -129,13 +164,16 @@ import TopBar from "@/components/TopBar.vue";
 import DiaryTest from "@/components/DiaryTest.vue";
 import Calendar from "@/components/Calendar.vue";
 import firebaseApp from "@/firebase";
+import { getAuth } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js";
+
 import {
   getFirestore,
   collection,
   getDocs,
   query,
   limit,
-  setDoc,
+  where,
+  addDoc,
   doc,
 } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js";
 const db = getFirestore(firebaseApp);
@@ -144,55 +182,110 @@ export default {
   data() {
     return {
       pageName: "Diary",
-      quote: "test",
+      quote:
+        "“Divide each difficulty into as many parts as is feasible and necessary to resolve it.”",
       selectedDate: new Date().toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",
       }),
-      entries: null,
+      entry: "",
+      userId: "",
+      docId: "",
     };
   },
+
+  watch: {
+    async selectedDate() {
+      this.entry = await this.checkUserPost();
+    },
+  },
+
   components: {
     Navbar,
     TopBar,
     DiaryTest,
     Calendar,
   },
+
   methods: {
     handleDateSelected(date) {
-      this.selectedDate = date; // Update the selected date when the event is received
+      this.selectedDate = date;
     },
+
     formatDate(value) {
       if (!value) return "";
 
-      // Assuming value is a Unix timestamp in seconds
       const date = new Date(value);
 
-      // Format the date as "Mar 20 2024"
       return date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",
       });
     },
-    handleAddClick() {
-      this.$router.push({ name: "DiaryTest" });
+
+    formatDateFirebase(dateString) {
+      const date = new Date(dateString);
+      const day = date.getDate();
+      const month = date.getMonth() + 1;
+      const year = date.getFullYear();
+
+      const formattedDay = day < 10 ? `0${day}` : day;
+      const formattedMonth = month < 10 ? `0${month}` : month;
+
+      const formattedDate = `${formattedDay}/${formattedMonth}/${year}`;
+
+      return formattedDate;
+    },
+    async save() {
+      const diaryEntry = {
+        Title: this.formatDateFirebase(this.selectedDate),
+        Description: this.description,
+      };
+      const db = getFirestore();
+      const diaryCollectionRef = collection(db, "usernames", this.docId, "diary");
+
+      addDoc(diaryCollectionRef, diaryEntry)
+        .then((docRef) => {
+          console.log("Document written with ID: ", docRef.id); 
+        })
+        .catch((error) => {
+          console.error("Error adding document: ", error); 
+        });
+      this.description = "";
+    },
+    async checkUserPost() {
+      this.description = "";
+      const currentUser = getAuth().currentUser;
+      if (currentUser) {
+        const db = getFirestore();
+        const usernamesCollection = collection(db, "usernames");
+        const userId = currentUser.uid;
+        const q = query(usernamesCollection, where("userId", "==", userId));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const entryDoc = querySnapshot.docs[0]
+          this.docId = entryDoc.id;
+          const subcollectionRef = query(
+            collection(entryDoc.ref, "diary"),
+            where("Title", "==", this.formatDateFirebase(this.selectedDate))
+          );
+          const subcollectionSnapshot = await getDocs(subcollectionRef);
+          if (!subcollectionSnapshot.empty) {
+            const diaryEntry = subcollectionSnapshot.docs[0];
+            return diaryEntry.data().Description;
+          }
+        } else {
+          return null;
+        }
+      }
+      return null;
     },
   },
-  async mounted() {
-    try {
-      const querySnapshot = await getDocs(
-        query(collection(db, "Diary"))
-      );
-      querySnapshot.forEach((doc) => {
-        this.entries = {
-          content: doc.data().content,
-        };
-      });
-    } catch (error) {
-      console.error(error);
-    }
+
+  created() {
+    this.entry = "Select a date to view your diary entry";
   },
 };
 </script>

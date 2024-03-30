@@ -40,6 +40,7 @@
 
 <script>
 export default {
+  emits: ["date-selected"],
   data() {
     const today = new Date();
     return {

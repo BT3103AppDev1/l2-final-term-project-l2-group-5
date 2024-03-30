@@ -162,6 +162,7 @@ export default {
         navigate(path) {
             this.$router.push(path);
         }
+        
     },
 }
 
