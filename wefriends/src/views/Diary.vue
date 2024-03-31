@@ -36,7 +36,7 @@
                 </div>
                 <button id="add-button" @click="confirmSave">Save</button>
               </div>
-            </div>
+            </div> 
           </div>
         </div>
       </div>
@@ -316,7 +316,7 @@ confirmSave() {
           this.entryId
         );
         try {
-          await diaryEntryRef.updateDoc(diaryEntryRef, diaryEntry);
+          await updateDoc(diaryEntryRef, diaryEntry);
           console.log("Entry updated successfully");
           this.entry = this.description;
           this.description = "";
@@ -410,9 +410,12 @@ confirmSave() {
       return null;
     },
   },
-
-  created() {
-    this.entry = "Select a date to view your diary entry";
-  },
+  async mounted() {
+    try {
+      this.entry = await this.checkUserPost();
+    } catch (error) {
+      console.error('Failed to load user post:', error);
+    }
+  }
 };
 </script>
