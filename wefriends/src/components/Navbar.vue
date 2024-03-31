@@ -1,36 +1,44 @@
 <template>
     <div>
         <div class="nav-container">
-            <div class="nav-option" @click="navigate('/profile')">
+            <div :class="{ 'nav-option': true, 'selected': $route.path === '/profile' }" @click="navigate('/profile')">
                 <img :src="profilePictureUrl" alt="profile-picture" class="profile-picture-preview">
                 <p>{{ username }}</p>
             </div>
-            <div class="nav-option" @click="navigate('/home')">
-                <img src="@/assets/navbar/home.png" alt="home-icon">
+            <div :class="{ 'nav-option': true, 'selected': $route.path === '/home' }" @click="navigate('/home')">
+                <img :src="selectedIcon('/home')" alt="home-icon">
                 <p>Home</p>
             </div>
-            <div class="nav-option" @click="navigate('/education')">
-                <img src="@/assets/navbar/education.png" alt="education-icon">
+            <div :class="{ 'nav-option': true, 'selected': $route.path === '/education' }" @click="navigate('/education')">
+                <img :src="selectedIcon('/education')" alt="education-icon">
                 <p>Education</p>
             </div>
-            <div class="nav-option" @click="navigate('/forum')">
-                <img src="@/assets/navbar/forum.png" alt="forum-icon">
+            <div :class="{ 'nav-option': true, 'selected': $route.path === '/forum' }" @click="navigate('/forum')">
+                <img :src="selectedIcon('/forum')" alt="forum-icon">
                 <p>Forum</p>
             </div>
-            <div class="nav-option" @click="navigate('/diary')">
-                <img src="@/assets/navbar/diary.png" alt="diary-icon">
+            <div :class="{ 'nav-option': true, 'selected': $route.path === '/diary' }" @click="navigate('/diary')">
+                <img :src="selectedIcon('/diary')" alt="diary-icon">
                 <p>Diary</p>
             </div>
-            <div class="nav-option" @click="navigate('/clinics')">
-                <img src="@/assets/navbar/clinics.png" alt="clinics-icon">
+            <div :class="{ 'nav-option': true, 'selected': $route.path === '/clinics' }" @click="navigate('/clinics')">
+                <img :src="selectedIcon('/clinics')" alt="clinics-icon">
                 <p>Clinics Near Me</p>
             </div>
             <div id="space">
             </div>
-            <div class="nav-option" @click="logout">
-                <img src="@/assets/navbar/logout.png" alt="logout-icon">
+            <div class="nav-option" @click="showModal = true">
+                <img src="@/assets/navbar/logout.png" alt="logout-">
                 <p>Logout</p>
             </div>
+            <Confirmation 
+                v-if="showModal"
+                :isVisible="showModal"
+                title="Confirm Logout"
+                message="Are you sure you want to log out?"
+                @confirm="logout"
+                @cancel="cancelModal"
+            />
         </div>
     </div>
 </template>
@@ -41,19 +49,29 @@
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
+    margin-left: 12%;
+    margin-right: 12%;
+    margin-top: 3%;
 }
 
 .nav-option {
     display: flex;
     align-items: center;
     width: 100%;
-    margin-left: 10%;
     padding: 5%;
     cursor: pointer;
+    margin-bottom: 4%;
 }
 
-.nav-option:hover {
-    background-color: #FBFAF0;
+.selected {
+    background-color: #436850;
+    color: white;
+    border-radius: 12px;
+}
+
+.nav-option:hover:not(.selected) {
+    background-color: #b8b8b8;
+    border-radius: 12px;
 }
 
 .nav-option img {
@@ -66,7 +84,7 @@
 }
 
 #space {
-    height: 12vh;
+    height: 32vh;
 }
 
 .profile-picture-preview {
@@ -80,17 +98,32 @@
 
 <script>
 import firebaseApp from "../firebase.js";
-import { getFirestore, doc, setDoc, query, where, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js"
+import { getFirestore, query, where, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js"
 import { getAuth } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
 import { getStorage, ref, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-storage.js';
 import { useRouter } from 'vue-router';
+import Confirmation from '@/components/Confirmation.vue';
 
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 const storage = getStorage(firebaseApp);
 const usernamesCollection = collection(db, 'usernames');
 
+import homeSelect from "@/assets/navbar/home-select.png";
+import educationSelect from "@/assets/navbar/education-select.png";
+import forumSelect from "@/assets/navbar/forum-select.png";
+import diarySelect from "@/assets/navbar/diary-select.png";
+import clinicsSelect from "@/assets/navbar/clinics-select.png";
+import home from "@/assets/navbar/home.png";
+import education from "@/assets/navbar/education.png";
+import forum from "@/assets/navbar/forum.png";
+import diary from "@/assets/navbar/diary.png";
+import clinics from "@/assets/navbar/clinics.png";
+
 export default {
+    components: {
+        Confirmation
+    },
     setup() {
         const router = useRouter();
         return { router };
@@ -101,6 +134,14 @@ export default {
             profilePictureUrl: null,
             userId: null,
             userEmail: null,
+            icons: {
+                '/home': { normal: home, selected: homeSelect },
+                '/education': { normal: education, selected: educationSelect },
+                '/forum': { normal: forum, selected: forumSelect },
+                '/diary': { normal: diary, selected: diarySelect },
+                '/clinics': { normal: clinics, selected: clinicsSelect }
+            },
+            showModal: false
         };
     },
     async created() {
@@ -161,9 +202,15 @@ export default {
         },
         navigate(path) {
             this.$router.push(path);
-        }
-        
-    },
+        },
+        selectedIcon(path) {
+            const icon = this.icons[path];
+            return this.$route.path === path ? icon.selected : icon.normal;
+        },
+        cancelModal() {
+            this.showModal = false;
+        },
+    }
 }
 
 </script>
