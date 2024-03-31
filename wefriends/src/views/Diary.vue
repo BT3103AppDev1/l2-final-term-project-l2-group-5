@@ -5,7 +5,7 @@
       <TopBar :pageName="pageName" id="topbar" />
       <div id="content">
         <div id="quote-header">
-          {{ quote }}
+          <h1>{{ quote }}</h1>
         </div>
         <div id="diary-container">
           <div id="entry">
@@ -13,15 +13,19 @@
           </div>
           <div id="current-entry">
             <div id="date-header">
-              <h2>Selected Date: {{ formatDate(selectedDate) }}</h2>
+              <h3>Selected Date: {{ formatDate(selectedDate) }}</h3>
             </div>
             <div id="inner-container">
-              <div v-if="entry" id="entries-list">
-                <h2>Thoughts of the day:</h2>
-                <p>{{ entry }}</p>
+              <div v-if="entry && entry !== 'Select a date to view your diary entry'" id="entries-list">
+                <h3>Reflections for the Day:</h3>
+                <p id="entryContainer">{{ entry }}</p>
+                <div id="buttonsContainer">
+                  <button id="edit-button" @click="edit">Edit</button>
+                  <button id="delete-button" @click="confirmDelete">Delete</button>
+                </div>
               </div>
               <div v-else>
-                <p>How was your day?</p>
+                <h3>How was your day?</h3>
                 <div class="text-input">
                   <form id="text-form">
                     <textarea
@@ -29,8 +33,8 @@
                       v-model="description"
                     ></textarea>
                   </form>
-                  <button id="add-button" @click="save">Add</button>
                 </div>
+                <button id="add-button" @click="confirmSave">Save</button>
               </div>
             </div>
           </div>
@@ -66,11 +70,25 @@
   height: 95%;
 }
 
-#add-button {
+#add-button,
+#edit-button {
   background-color: #436850;
   border: none;
   border-radius: 10px;
   width: 20%;
+  height: 40px;
+  padding: 10px;
+  color: white;
+  text-align: center;
+  display: block;
+  margin: 10px auto;
+  cursor: pointer;
+}
+
+#delete-button {
+  background-color: #c82828;
+  border: none;
+  border-radius: 10px;
   height: 40px;
   padding: 10px;
   color: white;
@@ -94,6 +112,8 @@
   align-items: center;
   justify-content: center;
   font-family: Arial, sans-serif;
+  color: white;
+  text-align: center;
 }
 
 .quote {
@@ -107,6 +127,7 @@
 #diary-container {
   display: flex;
   justify-content: space-between;
+  height: 70%;
 }
 
 #entry {
@@ -122,13 +143,23 @@
   margin-right: 5%;
   text-align: left;
   padding: 2.5%;
+  height: 90%;
+}
+
+#entryContainer {
+  padding: 10px;
+  border: 1px solid black;
+  border-radius: 10px;
+  background-color: #fbfada;
+  height: 30vh;
+  overflow-y: auto;
 }
 
 #inner-container {
   padding: 20px;
   background-color: #fbfada;
   border-top-right-radius: 25px;
-  margin-top: 5%;
+  height: 80%;
 }
 
 .text-input {
@@ -138,6 +169,7 @@
 
 .text-input textarea {
   background-color: #fbfada;
+  height: 25vh;
 }
 
 #text-form {
@@ -155,6 +187,12 @@ textarea {
   padding-left: 10px;
   padding-top: 10px;
   font-family: Arial, sans-serif;
+  align-self: center;
+}
+
+#buttonsContainer {
+  display: flex;
+  justify-content: center;
 }
 </style>
 
@@ -171,9 +209,10 @@ import {
   collection,
   getDocs,
   query,
-  limit,
   where,
   addDoc,
+  deleteDoc,
+  updateDoc,
   doc,
 } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js";
 const db = getFirestore(firebaseApp);
@@ -192,6 +231,8 @@ export default {
       entry: "",
       userId: "",
       docId: "",
+      tempEntry: "",
+      entryId: "",
     };
   },
 
@@ -209,6 +250,20 @@ export default {
   },
 
   methods: {
+    confirmDelete() {
+    if (confirm("Are you sure you want to delete this diary entry?")) {
+      this.remove();
+    }
+  },
+confirmSave() {
+    if (confirm("Are you sure you want to save this diary entry?")) {
+      this.save();
+      this.tempEntry = "";
+    } else {
+      this.entry = this.tempEntry;
+      this.tempEntry = "";
+    }
+},
     handleDateSelected(date) {
       this.selectedDate = date;
     },
@@ -243,18 +298,84 @@ export default {
         Title: this.formatDateFirebase(this.selectedDate),
         Description: this.description,
       };
+     
       const db = getFirestore();
-      const diaryCollectionRef = collection(db, "usernames", this.docId, "diary");
+      const diaryCollectionRef = collection(
+        db,
+        "usernames",
+        this.docId,
+        "diary"
+      );
 
-      addDoc(diaryCollectionRef, diaryEntry)
-        .then((docRef) => {
-          console.log("Document written with ID: ", docRef.id); 
-        })
-        .catch((error) => {
-          console.error("Error adding document: ", error); 
-        });
-      this.description = "";
+      if (this.entryId) {
+        const diaryEntryRef = doc(
+          db,
+          "usernames",
+          this.docId,
+          "diary",
+          this.entryId
+        );
+        try {
+          await diaryEntryRef.updateDoc(diaryEntryRef, diaryEntry);
+          console.log("Entry updated successfully");
+          this.entry = this.description;
+          this.description = "";
+          await this.checkUserPost();
+          return;
+        } catch (error) {
+          console.error("Error updating document: ", error);
+        }
+      } else {
+        try {
+        await addDoc(diaryCollectionRef, diaryEntry);
+        console.log("Entry saved successfully");
+        this.entry = this.description;
+        this.description = "";
+        await this.checkUserPost();
+      } catch (error) {
+        console.error("Error saving document: ", error);
+      }
+      }
+
+
     },
+
+    async remove() {
+      console.log("deleting")
+      const diaryEntriesRef = collection(db, "usernames", this.docId, "diary");
+      const q = query(
+        diaryEntriesRef,
+        where("Title", "==", this.formatDateFirebase(this.selectedDate))
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        console.log("Document found with the specified criteria.");
+       
+        const documentToDelete = querySnapshot.docs[0];
+        const subDocId = documentToDelete.id;
+        const toBeDeleted = doc(db, "usernames", this.docId, "diary", subDocId);
+        console.log("HGELP")
+        try {
+          await deleteDoc(toBeDeleted);
+          this.entry = "";
+          console.log("Document deleted successfully");
+        } catch (error) {
+          console.error("Error deleting document: ", error);
+        }
+      } else {
+        console.log("No document found with the specified criteria.");
+      }
+    },
+   
+    async edit() {
+      this.tempEntry = this.entry;
+      this.description = this.entry;
+      this.entry = "";
+
+    },
+
     async checkUserPost() {
       this.description = "";
       const currentUser = getAuth().currentUser;
@@ -265,7 +386,7 @@ export default {
         const q = query(usernamesCollection, where("userId", "==", userId));
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
-          const entryDoc = querySnapshot.docs[0]
+          const entryDoc = querySnapshot.docs[0];
           this.docId = entryDoc.id;
           const subcollectionRef = query(
             collection(entryDoc.ref, "diary"),
@@ -274,12 +395,18 @@ export default {
           const subcollectionSnapshot = await getDocs(subcollectionRef);
           if (!subcollectionSnapshot.empty) {
             const diaryEntry = subcollectionSnapshot.docs[0];
+            this.entryId = diaryEntry.id;
+            console.log(this.entryId);
             return diaryEntry.data().Description;
           }
         } else {
+          this.entryId = "";
+          console.log(this.entryId);
           return null;
         }
       }
+      this.entryId = "";
+      console.log(this.entryId);
       return null;
     },
   },

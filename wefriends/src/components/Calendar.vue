@@ -1,6 +1,6 @@
 <template>
   <div class="header">
-    <p id="header-text">Click a day to view diary entry</p>
+    <h2 id="header-text">Click a day to view diary entry</h2>
     <div id="calendarDetails">
       <button id="button" @click="changeMonth(-1)">‹</button>
       <div class="select-container">
@@ -85,14 +85,19 @@ export default {
       return this.selectedMonth;
     },
     numberOfDaysInMonth() {
-      const year = this.currentYear;
-      const month = this.currentMonth;
-      const numberOfDays = new Date(year, month + 1, 0).getDate();
-      const placeholders = new Array(this.firstDayOfWeek).fill("");
-      const days = new Array(numberOfDays).fill(null).map((e, i) => i + 1);
-
-      return placeholders.concat(days);
-    },
+    const year = this.currentYear;
+    const month = this.currentMonth;
+    const numberOfDays = new Date(year, month + 1, 0).getDate();
+    const placeholdersBefore = new Array(this.firstDayOfWeek).fill("");
+    const days = new Array(numberOfDays).fill(null).map((e, i) => i + 1);
+    
+    // Calculate how many trailing placeholders we need to fill the last week
+    const totalSlots = placeholdersBefore.length + days.length;
+    const placeholdersAfterLength = totalSlots % 7 === 0 ? 0 : 7 - (totalSlots % 7);
+    const placeholdersAfter = new Array(placeholdersAfterLength).fill("");
+    
+    return placeholdersBefore.concat(days, placeholdersAfter);
+  },
   },
   methods: {
     updateCalendar() {
@@ -141,10 +146,11 @@ export default {
 
 <style scoped>
 .calendar {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   margin: 0 auto;
   background: #f9f9f9;
-  border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
@@ -152,122 +158,92 @@ export default {
 .header {
   display: flex;
   align-items: center;
-  text-align: center;
+  justify-content: space-between;
   padding: 20px;
   background: transparent;
   color: #12372a;
-  justify-content: space-between;
+  font-weight: bolder;
 }
 
-#header-text {
-  font-weight: bold;
-}
-
-.weekdays {
-  display: flex;
-  background: #f9f9f9;
-  justify-content: space-evenly
-}
-
-.days {
+.weekdays, .days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
+
+}
+
+.weekdays div, .days .day {
+  padding: 15px 0;
+  border-right: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+}
+
+.weekdays div:last-child, .days .day:last-child {
+  border-right: none;
+}
+
+.days {
+  background-color: white;
 }
 
 .day {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
-  border-right: 1px solid #ddd;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-.day:last-child {
+.day.empty {
+  background-color: #f9f9f9; /* different background for empty cells */
+}
+
+.selected {
+  background-color: #12372a;
+  color: white;
+}
+
+/* Target all cells that are multiples of 7 to remove the right border */
+.days .day:nth-child(7n) {
   border-right: none;
 }
 
 #calendarDetails {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 5%;
-  width: 250px;
+  justify-content: space-evenly;
+  align-items: right;
+  width: 30%; /* Adjust to fit header width */
 }
 
-#buttonback,
-#button {
-  flex: 0 0 auto;
-}
-
-#dateName {
-  flex: 1 0 auto;
-  text-align: center;
-}
-
-.selected {
-  background-color: #4caf50;
-  color: white;
-}
-
-.current {
-  border: 2px solid #4caf50;
-}
-
-#button {
-  border-radius: 50%;
-}
-
-#button {
-  border-radius: 50%;
-  padding: 10px 12px;
-  border: transparent;
+.button {
+  border: none;
   background-color: #fff;
   cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
+  padding: 5px 10px;
+  margin: 0 5px;
+  border-radius: 5px; /* Rounded corners for buttons */
+  transition: background-color 0.3s, transform 0.2s; /* Smooth transition for interaction */
 }
 
-#button:hover {
+.button:hover {
   background-color: #12372a;
   color: #fff;
+  transform: scale(1.05); /* Slight increase in size on hover */
 }
 
 .select-container {
-  position: relative;
-  display: inline-block;
-  width: 70px;
+  display: inline-flex;
+  border-radius: 5px;
+  overflow: hidden; /* Ensures select arrows match the container's rounding */
+  background-color: white; /* Match button background for consistency */
 }
 
 .select-container select {
-  border: transparent;
-  background-color: white;
+  border: none;
+  background: transparent;
   padding: 5px 10px;
-  border-radius: 5px;
-  appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  position: relative;
-  font-size: 16px;
+  appearance: none;
   cursor: pointer;
   outline: none;
-  width: 70px;
-}
-
-.select-container::after {
-  content: "▼";
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  font-size: 12px;
-}
-
-.select-container option {
-  padding: 5px;
-  background: white;
-  border: none;
-}
-
-.select-container option:hover {
-  background-color: #f2f2f2;
 }
 </style>
