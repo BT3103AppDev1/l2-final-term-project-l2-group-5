@@ -411,11 +411,11 @@ confirmSave() {
     },
   },
   async mounted() {
-  try {
-    this.entry = await this.checkUserPost();
-  } catch (error) {
-    console.error('Failed to load user post:', error);
+    try {
+      this.entry = await this.checkUserPost();
+    } catch (error) {
+      console.error('Failed to load user post:', error);
+    }
   }
-}
 };
 </script>
