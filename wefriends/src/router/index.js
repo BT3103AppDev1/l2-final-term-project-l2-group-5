@@ -9,7 +9,8 @@ import Forum from '@/views/Forum.vue'
 import Clinics from '@/views/Clinics.vue'
 import Education from '@/views/Education.vue'
 import Diary from '@/views/Diary.vue'
-import PostPage from '@/components/PostPage.vue';
+import PostPage from '@/components/PostPage.vue'
+import NotFound from '@/views/NotFound.vue'
 
 const routes = [
     {
@@ -67,6 +68,11 @@ const routes = [
         name: 'PostPage',
         component: PostPage,
         props: true
+    },
+    {
+        path: "/:catchAll(.*)",
+        name: "NotFound",
+        component: NotFound
     }
 ]
 

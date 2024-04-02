@@ -89,6 +89,7 @@ export default {
         });
       } else {
         console.log('No such document!');
+        this.$router.push('/NotFound')
       }
 
       this.loadComments();
