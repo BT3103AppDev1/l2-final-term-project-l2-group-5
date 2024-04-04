@@ -8,12 +8,26 @@
         <div class="main-post">
           <h1 class="post-title">{{ post.title }}</h1>
           <p class="post-body">{{ post.body }}</p>
-          <p class="post-details">Posted by: {{ post.username }} at {{ post.formattedTimestamp }}</p>
+          <p class="post-details">
+            <span style="font-size: 1.1em; color:black;">Posted by </span>
+            <router-link :to="'/profile/' + post.username" style="font-size: 1.1em; color:#436850; font-weight:bold">
+              {{ post.username }}
+            </router-link> <br>
+            {{ post.formattedTimestamp }}
+          </p>
         </div>
         <div class="comment-container" :style="{ maxHeight: commentContainerMaxHeight + 'px' }">
           <div v-for="comment in comments" :key="comment.id" class="comment">
-            <p><b>{{ comment.content }}</b></p>
-            <p>Posted by: {{ comment.username }} at {{ comment.formattedTimestamp }}</p>
+            <router-link :to="'/profile/' + comment.username">
+              <img :src="comment.profilePic" alt="profile-picture" class="profile-picture-preview">
+            </router-link>
+            <div class="comment-content">
+              <router-link :to="'/profile/' + comment.username">
+                <p style="color: #436850;"><b>{{ comment.username }}</b></p>
+              </router-link>
+              <p>{{ comment.content }}</p>
+            </div>
+            <p class="comment-details">{{ comment.formattedTimestamp }}</p>
           </div>
         </div>
         <div class="vote-container">
@@ -35,9 +49,13 @@
 <script>
 import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp, doc, updateDoc, increment, getDoc, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
 import { getAuth } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
+import { getStorage, ref, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-storage.js';
 import Navbar from '@/components/Navbar.vue';
 import TopBar from '@/components/TopBar.vue';
 import { useRouter } from 'vue-router';
+import firebaseApp from "../firebase.js";
+
+const storage = getStorage(firebaseApp);
 
 export default {
   components: {
@@ -59,7 +77,9 @@ export default {
       upvotes: 0,
       downvotes: 0,
       upvoted: false,
-      downvoted: false
+      downvoted: false,
+      profilePic: null,
+      profilePicPromises: [],
     };
   },
   mounted() {
@@ -84,7 +104,7 @@ export default {
           this.downvotes = doc.data().downvotes;
           this.post = {
             ...doc.data(),
-            formattedTimestamp: (new Date(doc.data().timestamp.toDate())).toLocaleString()
+            formattedTimestamp: this.calculateTimeDifference(doc.data().timestamp.toMillis())
           };
         });
       } else {
@@ -101,6 +121,29 @@ export default {
   methods: {
     navigate(path) {
       this.$router.push(path);
+    },
+    calculateTimeDifference(timestampMillis) {
+      const currentTime = new Date().getTime();
+      const timeDifference = currentTime - timestampMillis;
+
+      if (timeDifference < 0) {
+      return "just now";
+    }
+
+      const seconds = Math.floor(timeDifference / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+
+      if (days > 0) {
+        return `${days} day${days > 1 ? 's' : ''} ago`;
+      } else if (hours > 0) {
+        return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+      } else if (minutes > 0) {
+        return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+      } else {
+        return `${seconds} second${seconds > 1 ? 's' : ''} ago`;
+      }
     },
     adjustCommentContainerHeight() {
       const mainPostHeight = document.querySelector('.main-post').offsetHeight;
@@ -138,18 +181,24 @@ export default {
         const commentsQuery = query(collection(db, 'comments'), where('postId', '==', postId));
         const commentsSnapshot = await getDocs(commentsQuery);
 
-        const postComments = commentsSnapshot.docs
+        const profilePicPromises = commentsSnapshot.docs
           .filter(doc => doc.data().postId === postId)
-          .map(doc => {
+          .map(async doc => {
             const data = doc.data();
+            const storageRef = ref(storage, `ProfilePictures/${data.userId}`);
+            const profilePic = await getDownloadURL(storageRef);
+            console.log(profilePic)
             const timestamp = data.timestamp.toDate();
-            const formattedTimestamp = timestamp.toLocaleString();
-            return { ...data, formattedTimestamp };
+            const formattedTimestamp = this.calculateTimeDifference(timestamp);;
+            return { ...data, profilePic, formattedTimestamp };
           });
 
-        this.comments = postComments.sort((a, b) => {
-          return b.timestamp - a.timestamp;
-        });
+        const commentsWithProfilePics = await Promise.all(profilePicPromises);
+
+        this.comments = commentsWithProfilePics.map(comment => ({
+          ...comment,
+        })).sort((a, b) => b.timestamp - a.timestamp);
+
       } catch (error) {
         console.error('Error loading comments:', error);
       }
@@ -344,6 +393,7 @@ export default {
   align-self: flex;
   margin-left:12.2%;
   border-radius: 20px;
+  position: relative;
 }
 
 .post-title {
@@ -351,6 +401,7 @@ export default {
   font-size: 1.2em;
   margin-bottom: 5px;
   margin-left: 20px;
+  color: #436850;
 }
 
 .post-body {
@@ -363,12 +414,19 @@ export default {
   line-height: 1.5;
   padding-left: 20px;
   padding-right: 20px;
+  color: #777777;
+  position: absolute;
+  top: 15%;
+  right: 20px;
+  font-size: 0.9em;
+  text-align: right;
 }
 
 .comment-container {
   overflow-y: auto;
   width: 70%;
-  margin-left:310px;
+  margin-left: 310px;
+  padding-right: 20px;
 }
 
 .comment {
@@ -376,9 +434,30 @@ export default {
   border: 1px solid #ccc;
   padding: 20px;
   margin-bottom: 10px;
-  margin-left: 30px;
-  width:90%;
   border-radius: 20px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.profile-picture-preview {
+  width: 50px;
+  height: auto;
+  border-radius: 50%;
+  margin-right: 20px;
+}
+
+.comment-content {
+  flex: 1;
+  margin-right: 20px;
+}
+
+.comment-details {
+  margin-left: auto;
+  margin-right: 5px;
+  margin-top: 5px;
+  font-size: 0.9em;
+  color: #666;
+  text-align: right;
 }
 
 .comment-form {
@@ -446,8 +525,8 @@ button:hover {
   position: fixed;
   bottom: 2%;
   left: 21%;
-  margin-left: 20px;
-  margin-bottom: 20px;
+  margin-left: 1vw;
+  margin-bottom: 1.5vw;
 }
 
 .upvote-btn, .downvote-btn {
@@ -456,10 +535,21 @@ button:hover {
 }
 
 .score {
-  margin-left:30px;
-  margin-right:30px;
+  margin-left:1.5vw;
+  margin-right:1.5vw;
   font-family: 'Nunito Sans', sans-serif;
   font-size: larger;
   font-weight: bolder;
+}
+
+.post-details a:hover,
+.comment-content a:hover {
+  text-decoration: underline;
+}
+
+.post-details a,
+.comment-content a {
+  color: inherit;
+  cursor: pointer;
 }
 </style>

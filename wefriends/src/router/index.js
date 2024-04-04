@@ -5,6 +5,7 @@ import SignUp from '@/views/SignUp.vue'
 import Login from '@/views/Login.vue'
 import Forgot from '@/views/Forgot.vue'
 import Profile from '@/views/Profile.vue'
+import ViewProfile from '@/views/ViewProfile.vue'
 import Forum from '@/views/Forum.vue'
 import Clinics from '@/views/Clinics.vue'
 import Education from '@/views/Education.vue'
@@ -62,6 +63,12 @@ const routes = [
         path: '/profile',
         name: 'Profile',
         component: Profile
+    },
+    {
+        path: '/profile/:username',
+        name: 'ViewProfile',
+        component: ViewProfile,
+        props: true
     },
     {
         path: '/post/:postId', // Dynamic route with postId parameter

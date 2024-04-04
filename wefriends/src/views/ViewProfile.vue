@@ -5,7 +5,7 @@
             <TopBar :pageName="pageName" id="topbar" />
             <div id="content">
                 <div>
-                    <img :src="userProfilePictureUrl" alt="profile-picture" id="profile-picture-preview">
+                    <img :src="profilePictureUrl" alt="profile-picture" id="profile-picture-preview">
                 </div>
                 <div>
                     <h2>Username: </h2>
@@ -74,17 +74,18 @@ const auth = getAuth(firebaseApp);
 const storage = getStorage(firebaseApp);
 
 export default {
+    props: {
+        username: String,
+    },
     data() {
         return {
-            pageName: "Profile",
-            username: "",
+            pageName: "",
             bio: "",
-            userId: "",
-            currentUser: null,
-            userProfileDocId: null,
-            userProfileDoc: null,
-            userProfileDocData: null,
-            userProfilePictureUrl: null,
+            profileDocId: null,
+            profileDoc: null,
+            profileDocData: null,
+            profilePictureUrl: null,
+            profileUserId: null,
         }
     },
     components: {
@@ -96,27 +97,13 @@ export default {
         return { router };
     },
     async mounted() {
-        await new Promise((resolve, reject) => {
-            const unsubscribe = auth.onAuthStateChanged((user) => {
-                unsubscribe();
-                if (user) {
-                    // User is signed in.
-                    this.userId = user.uid;
-                    this.currentUser = user;
-                    resolve();
-                } else {
-                    // No user is signed in.
-                    console.log("No user is signed in.");
-                    reject(new Error("No user is signed in."));
-                }
-            });
-        });
+        this.pageName = "Viewing Profile: " + this.username;
         // Check if User has a Profile
         try {
             console.log(this.userId);
             const profileQuery = query(
                 usernamesCollection,
-                where("userId", "==", this.userId)
+                where("username", "==", this.username)
             );
             const profileSnapshot = await getDocs(profileQuery);
             console.log("checked for profile");
@@ -124,27 +111,27 @@ export default {
             // Profile with userId exists
             if (profileSnapshot.size > 0) {
                 // Retrieve user document and update details
-                this.userProfileDoc = profileSnapshot.docs[0];
-                this.userProfileDocId = this.userProfileDoc.id;
-                this.userProfileDocData = this.userProfileDoc.data();
-                console.log("User's Profile Document:", this.userProfileDoc);
-                console.log("User's Profile Document ID:", this.userProfileDocId);
-                this.bio = this.userProfileDocData.bio;
-                this.username = this.userProfileDocData.username;
-                // user has no Profile
+                this.profileDoc = profileSnapshot.docs[0];
+                this.profileDocId = this.profileDoc.id;
+                this.profileDocData = this.profileDoc.data();
+                console.log("User's Profile Document:", this.profileDoc);
+                console.log("User's Profile Document ID:", this.profileDocId);
+                this.bio = this.profileDocData.bio;
+                this.profileUserId = this.profileDocData.userId;
+            // user has no Profile
             } else {
-                this.$router.push("/home");
+                this.$router.push("/profilenotfound");
                 return;
             }
         } catch (error) {
             console.log(error);
         };
         // Retrieve user profile picture
-        const fileRef = ref(storage, `ProfilePictures/${this.userId}`);
+        const fileRef = ref(storage, `ProfilePictures/${this.profileUserId}`);
         try {
-            const userProfilePictureUrl = await getDownloadURL(fileRef);
-            console.log("user profile picture ref: " + userProfilePictureUrl);
-            this.userProfilePictureUrl = userProfilePictureUrl;
+            const profilePictureUrl = await getDownloadURL(fileRef);
+            console.log("user profile picture ref: " + profilePictureUrl);
+            this.profilePictureUrl = profilePictureUrl;
         } catch (error) {
             console.log(error);
         };

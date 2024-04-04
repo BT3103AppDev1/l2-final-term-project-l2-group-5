@@ -246,7 +246,7 @@ input[type="text"] {
 
 .pagination-buttons {
   position: absolute;
-  bottom: -15px;
+  bottom: 20px;
   left: 72%;
   transform: translateX(-50%);
   display: flex;

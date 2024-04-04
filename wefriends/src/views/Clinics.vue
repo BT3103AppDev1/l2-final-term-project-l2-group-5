@@ -4,24 +4,26 @@
         <div id="content">
             <TopBar :pageName="pageName" id="topbar" />
             <div id="content-map">
-                <h1>Find a Clinic</h1>
-                <input type="text" v-model="postalCode" class="postal-input" placeholder="Enter Postal Code">
-                <button @click="fetchNearbyClinics">Search</button>
-                <div id="locations-map">
-                <div id="locations">
-                    <ul class="clinic-list">
-                    <li v-for="clinic in clinics" :key="clinic.place_id" @click="zoomToClinic(clinic)">
-                        <div class="box">
-                        <h3>{{ clinic.name }}</h3>
-                        <p>{{ clinic.vicinity }}</p>
-                        <p v-if="clinic.distance"><i>Distance: {{ clinic.distance }} away</i></p>
-                        <p v-else>Distance: Calculating...</p>
-                        </div>
-                    </li>
-                    </ul>
+                <div id="quote-header">
+                    <h1>{{ quote }}</h1>
                 </div>
-                <div id="map"></div>
-            </div>
+                <div id="locations-map">
+                    <div id="locations">
+                        <input type="text" v-model="postalCode" class="postal-input" placeholder="Enter Postal Code">
+                        <button @click="fetchNearbyClinics">Search</button>
+                        <ul class="clinic-list">
+                            <li v-for="clinic in clinics" :key="clinic.place_id" @click="zoomToClinic(clinic)">
+                                <div class="box">
+                                <h3>{{ clinic.name }}</h3>
+                                <p>{{ clinic.vicinity }}</p>
+                                <p v-if="clinic.distance"><i>Distance: {{ clinic.distance }} away</i></p>
+                                <p v-else>Distance: Calculating...</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div id="map"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -47,6 +49,9 @@ export default {
             markers: [],
             clinics: [], // list of nearby clinics
             distanceMatrixService: null,
+            infoWindow: null,
+            quote:
+            "Seeking assistance? Discover a network of support and resources near you.",
         }
     },
     mounted() {
@@ -73,6 +78,7 @@ export default {
             this.service = new google.maps.places.PlacesService(this.map);
             this.geocoder = new google.maps.Geocoder();
             this.distanceMatrixService = new google.maps.DistanceMatrixService();
+            this.infoWindow = new google.maps.InfoWindow();
         },
         clearMarkers() {
             this.markers.forEach((marker) => {
@@ -150,9 +156,15 @@ export default {
                         title: place.name,
                     });
 
-                    marker.addListener('click', () => {
-                        alert(`Place name: ${place.name}`);
+                    marker.addListener('mouseover', () => {
+                        this.infoWindow.setContent(`<div><strong>${place.name}</strong><br>${place.vicinity}<br><i>Distance: ${this.clinics[index].distance ? this.clinics[index].distance : 'Calculating...'}</i></div>`);
+                        this.infoWindow.open(this.map, marker);
                     });
+
+                    marker.addListener('mouseout', () => {
+                        this.infoWindow.close();
+                    });
+
                     this.markers.push(marker);
                     });
                 }});
@@ -190,11 +202,26 @@ export default {
     flex-direction: column;
 }
 
-#content h1 {
-    margin-left: 15px;
+#quote-header {
+    position: relative;
+    max-width: 95%;
+    background-color: #436850;
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    height: 9%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    color: white;
+    text-align: center;
+    font-size: 12px;
 }
 
-#content button {
+#locations button {
     padding: 6px;
     background-color: #12372A;
     color: white;
@@ -203,14 +230,14 @@ export default {
     transition: box-shadow 0.1s ease-out;
 }
 
-#content button:hover {
+#locations button:hover {
     background-color: #12372A;
     box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.3);
 }
 
 #locations {
     width: 20%;
-    height: 75vh;
+    height: 80vh;
     overflow-y: auto; /* enable vertical scrolling */
     font-size: 10px;
 }
@@ -222,7 +249,7 @@ export default {
 #map {
     margin: 0px 0px 0px 20px;
     width: 85%;
-    height: 74vh;
+    height: 80vh;
 }
 .clinic-list {
     list-style-type: none; /* removes the bullets */
@@ -231,10 +258,10 @@ export default {
 }
 
 .postal-input {
-    margin: 0px 7px 20px 15px;
+    margin: 0px 7px 13px 15px;
     border-radius: 5px;
     padding: 6px;
-    width: 12%;
+    width: 58%;
     border: 0px;
 }
 
