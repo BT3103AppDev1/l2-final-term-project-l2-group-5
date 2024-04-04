@@ -79,7 +79,7 @@ export default {
     },
     data() {
         return {
-            pageName: "ViewProfile",
+            pageName: "",
             bio: "",
             profileDocId: null,
             profileDoc: null,
@@ -97,6 +97,7 @@ export default {
         return { router };
     },
     async mounted() {
+        this.pageName = "Viewing Profile: " + this.username;
         // Check if User has a Profile
         try {
             console.log(this.userId);

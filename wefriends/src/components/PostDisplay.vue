@@ -11,6 +11,7 @@
           <div class="score-container">
             <span class="score">Score: {{ calculateScore(post) }}</span>
           </div>
+          <div class="days-ago">{{ calculateDaysAgo(post.timestamp.toMillis()) }}</div>
         </div>
       </div>
     </a>
@@ -30,6 +31,30 @@ export default {
     },
     calculateScore(post) {
       return post.upvotes - post.downvotes;
+    },
+    calculateDaysAgo(timestamp) {
+      const currentTime = new Date().getTime();
+      const postTime = new Date(timestamp).getTime();
+      const timeDifference = currentTime - postTime;
+      
+      if (timeDifference < 0) {
+        return "just now";
+      }
+
+      const seconds = Math.floor(timeDifference / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+
+      if (days > 0) {
+        return `${days} day${days > 1 ? 's' : ''} ago`;
+      } else if (hours > 0) {
+        return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+      } else if (minutes > 0) {
+        return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+      } else {
+        return `${seconds} second${seconds > 1 ? 's' : ''} ago`;
+      }
     }
   }
 };
@@ -57,6 +82,14 @@ export default {
 .post-content {
   margin-bottom: 10px;
   position:relative;
+}
+
+.days-ago {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  font-size: 0.9em;
+  color: #666;
 }
 
 .score-container {

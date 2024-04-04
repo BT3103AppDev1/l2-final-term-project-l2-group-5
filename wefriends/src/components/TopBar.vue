@@ -19,14 +19,14 @@
     margin-top: 0;
     margin-bottom: 0;
     align-self: center;
-    width: 20%;
+    width: 50%;
 }
 
 #brand {
     display: flex;
     align-items: center;
-    justify-content: center;
-    margin-left: 65%;
+    justify-content: right;
+    margin-left: 35%;
 }
 
 #logo {
@@ -36,7 +36,7 @@
 }
 
 #name {
-    margin: 0;
+    padding-right: 1%;
 }
 </style>
 
