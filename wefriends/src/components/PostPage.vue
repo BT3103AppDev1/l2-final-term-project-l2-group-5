@@ -8,12 +8,12 @@
         <div class="main-post">
           <h1 class="post-title">{{ post.title }}</h1>
           <p class="post-body">{{ post.body }}</p>
-          <p class="post-details">Posted by: {{ post.username }} at {{ post.formattedTimestamp }}</p>
+          <p class="post-details">Posted by {{ post.username }} {{ post.formattedTimestamp }}</p>
         </div>
         <div class="comment-container" :style="{ maxHeight: commentContainerMaxHeight + 'px' }">
           <div v-for="comment in comments" :key="comment.id" class="comment">
             <p><b>{{ comment.content }}</b></p>
-            <p>Posted by: {{ comment.username }} at {{ comment.formattedTimestamp }}</p>
+            <p>Posted by {{ comment.username }} {{ comment.formattedTimestamp }}</p>
           </div>
         </div>
         <div class="vote-container">
@@ -84,7 +84,7 @@ export default {
           this.downvotes = doc.data().downvotes;
           this.post = {
             ...doc.data(),
-            formattedTimestamp: (new Date(doc.data().timestamp.toDate())).toLocaleString()
+            formattedTimestamp: this.calculateTimeDifference(doc.data().timestamp.toMillis())
           };
         });
       } else {
@@ -101,6 +101,29 @@ export default {
   methods: {
     navigate(path) {
       this.$router.push(path);
+    },
+    calculateTimeDifference(timestampMillis) {
+      const currentTime = new Date().getTime();
+      const timeDifference = currentTime - timestampMillis;
+
+      if (timeDifference < 0) {
+      return "just now";
+    }
+
+      const seconds = Math.floor(timeDifference / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+
+      if (days > 0) {
+        return `${days} day${days > 1 ? 's' : ''} ago`;
+      } else if (hours > 0) {
+        return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+      } else if (minutes > 0) {
+        return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+      } else {
+        return `${seconds} second${seconds > 1 ? 's' : ''} ago`;
+      }
     },
     adjustCommentContainerHeight() {
       const mainPostHeight = document.querySelector('.main-post').offsetHeight;
@@ -143,7 +166,7 @@ export default {
           .map(doc => {
             const data = doc.data();
             const timestamp = data.timestamp.toDate();
-            const formattedTimestamp = timestamp.toLocaleString();
+            const formattedTimestamp = this.calculateTimeDifference(timestamp);
             return { ...data, formattedTimestamp };
           });
 
