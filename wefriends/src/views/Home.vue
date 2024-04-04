@@ -83,7 +83,12 @@
       </div>
       <form @submit.prevent="createProfile">
         <div class="rounded-input">
-          <input type="text" placeholder="Username..." v-model="username" />
+          <label class="profile-label" for="username-input">Username:</label><br>
+          <input id="username-input" type="text" placeholder="Username..." v-model="username" />
+        </div>
+        <div class="rounded-input">
+          <label class="profile-label" for="bio-input">Bio:</label><br>
+          <textarea id="bio-input" rows="6" placeholder="Bio..." v-model="bio"></textarea>
         </div>
         <button type="submit" id="button" :disabled="fieldsFilled" :class="{ 'disabled-button': fieldsFilled }">Create
           Profile</button>
@@ -104,7 +109,7 @@
   position: absolute;
   left: 0;
   width: 50%;
-  height: 100%;
+  height: 150%;
   background-color: #436850;
   padding: 20px;
 }
@@ -122,7 +127,7 @@
   position: absolute;
   right: 0;
   width: 50%;
-  height: 100%;
+  height: 150%;
   background-color: #fbfaf0;
   padding: 20px;
 }
@@ -138,9 +143,20 @@
   border-left: 10%;
 }
 
+.rounded-input textarea {
+  border-radius: 10px;
+  background-color: white;
+  width: 80%;
+  /* height: 30px; */
+  padding: 10px;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+  border-left: 10%;
+}
+
 .rounded-input {
   margin-left: 10%;
-  margin-top: 5%;
+  margin-bottom: 1%;
 }
 
 .intro-text {
@@ -174,6 +190,7 @@
 }
 #toggle-menu {
     margin-top: 2%;
+    margin-bottom: 5%;
 }
 #toggle-menu p {
   margin: 0;
@@ -224,7 +241,7 @@
 .nav-option {
     display: flex;
     align-items: center;
-    margin-top: 10%;
+    margin-top: 30%;
     cursor: pointer;
     justify-content: center;
     width: 30%;
@@ -523,6 +540,7 @@ export default {
       prompt_body: "",
       profile: false,
       username: "",
+      bio: "",
       userId: "",
       currentUser: null,
       defaultPictureUrl: [],
@@ -545,7 +563,7 @@ export default {
   },
   computed: {
     fieldsFilled() {
-      return !(this.username && this.imageUrl);
+      return !(this.username && this.imageUrl && this.bio);
     },
   },
   setup() {
@@ -716,9 +734,11 @@ export default {
         await addDoc(usernamesCollection, {
           userId: this.userId,
           username: this.username,
+          bio: this.bio,
         });
         console.log("doc added");
         this.username = "";
+        this.bio = "";
         // upload profile picture
         if (this.isProfilePicDefault) {
           const response = await fetch(
