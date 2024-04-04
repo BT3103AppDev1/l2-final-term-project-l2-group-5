@@ -525,8 +525,8 @@ button:hover {
   position: fixed;
   bottom: 2%;
   left: 21%;
-  margin-left: 20px;
-  margin-bottom: 20px;
+  margin-left: 1vw;
+  margin-bottom: 1.5vw;
 }
 
 .upvote-btn, .downvote-btn {
@@ -535,8 +535,8 @@ button:hover {
 }
 
 .score {
-  margin-left:30px;
-  margin-right:30px;
+  margin-left:1.5vw;
+  margin-right:1.5vw;
   font-family: 'Nunito Sans', sans-serif;
   font-size: larger;
   font-weight: bolder;
