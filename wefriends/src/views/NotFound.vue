@@ -3,18 +3,25 @@
     <h2>404</h2>
     <h1>Page Not Found</h1>
     <p>Please check the URL for mistakes and try again.</p>
-    <router-link :to="redirectPath" class="redirect-link">Back to {{ destination }}</router-link>
+    <router-link :to="redirectPath" class="redirect-link">
+      <span v-if="loading">Loading...</span>
+      <span v-else>Back to {{ destination }}</span>
+    </router-link>
   </div>
 </template>
 
 <script>
+import firebaseApp from "../firebase.js";
 import { getAuth } from 'firebase/auth';
+const auth = getAuth(firebaseApp);
 
 export default {
   name: 'NotFound',
   data() {
     return {
+      loading: true, // Set loading to true initially
       loggedIn: false,
+      userId: null,
     };
   },
   computed: {
@@ -22,24 +29,28 @@ export default {
       return this.loggedIn ? '/home' : '/';
     },
     destination() {
-      return this.loggedIn ? 'Home' : 'Main Page';
+      return this.loggedIn ? 'Home Page' : 'Welcome Page';
     },
   },
-  created() {
-    // Check if the user is logged in and update the loggedIn data property accordingly
-    this.checkLoginStatus();
-  },
-  methods: {
-    checkLoginStatus() {
-      const auth = getAuth();
-      auth.onAuthStateChanged((user) => {
-        if (user) {
-          this.loggedIn = true;
-        } else {
-          this.loggedIn = false;
-        }
+  async created() {
+    try {
+      const user = await new Promise((resolve, reject) => {
+        const unsubscribe = auth.onAuthStateChanged(user => {
+          unsubscribe();
+          resolve(user); // Resolve with user object even if it's null
+        });
       });
-    },
+
+      if (user) {
+        this.loggedIn = true;
+      } else {
+        console.log("No user is signed in.");
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      this.loading = false; // Set loading to false when the authentication check is complete
+    }
   },
 };
 </script>
