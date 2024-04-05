@@ -398,8 +398,9 @@
 }
 
 .prompt-img {
-  width: 100%;
+  width: auto;
   height: auto;
+  align-self: center;
 }
 
 .text-input {
