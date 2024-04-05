@@ -84,7 +84,7 @@
 }
 
 #space {
-    height: 32vh;
+    height: 24vh;
 }
 
 .profile-picture-preview {
