@@ -37,21 +37,24 @@
 
 <style scoped>
 .google {
-  display: flex;
-  align-items: center;
-  text-align: center;
+    display: flex;
+    align-items: center;
+    text-align: center;
 }
+
 .google::before,
 .google::after {
-  content: '';
-  flex: 1;
-  border-bottom: 1px solid #000;
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #000;
 }
+
 .google:not(:empty)::before {
-  margin-right: .25em;
+    margin-right: .25em;
 }
+
 .google:not(:empty)::after {
-  margin-left: .25em;
+    margin-left: .25em;
 }
 
 #left-half {
@@ -166,7 +169,7 @@ export default {
 
         let ui = firebaseui.auth.AuthUI.getInstance();
         if (ui) {
-            ui.reset(); 
+            ui.reset();
         } else {
             ui = new firebaseui.auth.AuthUI(firebase.auth());
         }
