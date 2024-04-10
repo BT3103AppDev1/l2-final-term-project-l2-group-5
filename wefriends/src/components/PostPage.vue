@@ -451,9 +451,10 @@ export default {
 
 .profile-picture-preview {
   width: 50px;
-  height: auto;
+  height: 50px;
   border-radius: 50%;
   margin-right: 20px;
+  object-fit: cover;
 }
 
 .comment-content {
