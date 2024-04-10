@@ -4,16 +4,26 @@
         <div id="right-side">
             <TopBar :pageName="pageName" id="topbar" />
             <div id="content">
-                <div>
-                    <img :src="profilePictureUrl" alt="profile-picture" id="profile-picture-preview">
+                <div id="user-email-picture-div">
+                    <div id="user-email-div">
+                        <div class="rounded-input" id="username-div">
+                            <label class="profile-label" for="username-input">Username</label><br>
+                            <input id="username-input" type="text" placeholder="Profile Has No Username" v-model="profileUsername" :readonly="!editing" />
+                        </div>
+                        <div class="rounded-input" id="email-div">
+                            <label class="email-label" for="email-input">Email</label><br>
+                            <input id="email-input" type="text" placeholder="Profile Has No Email" v-model="email" :readonly="!editing" />
+                        </div>
+                    </div>
+                    <div id="profilepic-div">
+                        <img :src="profilePictureUrl" alt="profile-picture" id="profile-picture-preview">
+                    </div>
                 </div>
-                <div>
-                    <h2>Username: </h2>
-                    <p>{{ username }}</p>
-                </div>
-                <div>
-                    <h2>Bio: </h2>
-                    <p>{{ bio }}</p>
+                <div id="bio-div-div">
+                    <div class="rounded-input" id="bio-div">
+                        <label class="bio-label" for="bio-input">Bio</label><br>
+                        <textarea id="bio-input" rows="6" placeholder="Profile Has No Bio" v-model="bio" :readonly="!editing" ></textarea>
+                    </div>
                 </div>
             </div>
         </div>
@@ -21,6 +31,68 @@
 </template>
 
 <style scoped>
+#user-email-picture-div {
+    width: 100%;
+    display: flex;
+    margin-top: 3%;
+}
+#user-email-div {
+    width: 60%;
+    padding-left: 5%;
+}
+#profilepic-div {
+    width: 35%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#profile-picture-preview {
+    width: 216px;
+    height: 216px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: inline-block;
+}
+#bio-div-div {
+    width: 100%;
+    display: flex;
+}
+#bio-div {
+    width: 100%;
+    padding-left: 5%;
+}
+.rounded-input {
+  margin-bottom: 1%;
+  width: 100%;
+}
+.rounded-input label {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+.rounded-input input {
+  border-radius: 10px;
+  background-color: white;
+  width: 70%;
+  height: 30px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+  border-left: 10%;
+  cursor: default;
+  outline: none;
+}
+.rounded-input textarea {
+  border-radius: 10px;
+  background-color: white;
+  width: 90%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+  border-left: 10%;
+  font-family: 'Nunito Sans', sans-serif;
+  cursor: default;
+  outline: none;
+}
 #view {
     display: flex;
     justify-content: space-around;
@@ -49,13 +121,6 @@
     display: flex;
     flex-direction: column;
 }
-
-#profile-picture-preview {
-    width: 144px;
-    height: 144px;
-    border-radius: 50%;
-    object-fit: cover;
-}
 </style>
 
 <script>
@@ -81,11 +146,14 @@ export default {
         return {
             pageName: "",
             bio: "",
+            email: "",
+            profileUsername: "",
             profileDocId: null,
             profileDoc: null,
             profileDocData: null,
             profilePictureUrl: null,
             profileUserId: null,
+            editing: false,
         }
     },
     components: {
@@ -117,6 +185,8 @@ export default {
                 console.log("User's Profile Document:", this.profileDoc);
                 console.log("User's Profile Document ID:", this.profileDocId);
                 this.bio = this.profileDocData.bio;
+                this.email = this.profileDocData.email;
+                this.profileUsername = this.profileDocData.username;
                 this.profileUserId = this.profileDocData.userId;
             // user has no Profile
             } else {
