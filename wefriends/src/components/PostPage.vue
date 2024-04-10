@@ -98,7 +98,7 @@ export default {
       const postSnapshot = await getDocs(postQuery);
 
       if (!postSnapshot.empty) {
-        postSnapshot.forEach((doc) => {
+        postSnapshot.forEach(async (doc) => {
           this.id = doc.id;
           this.upvotes = doc.data().upvotes;
           this.downvotes = doc.data().downvotes;
@@ -106,6 +106,15 @@ export default {
             ...doc.data(),
             formattedTimestamp: this.calculateTimeDifference(doc.data().timestamp.toMillis())
           };
+          // Fetch the updated username based on userId
+          const userId = this.post.userId;
+          const usernameQuery = query(collection(db, 'usernames'), where('userId', '==', userId));
+          const usernameSnapshot = await getDocs(usernameQuery);
+          if (!usernameSnapshot.empty) {
+            this.post.username = usernameSnapshot.docs[0].data().username;
+          } else {
+            console.log('No matching username found for userId:', userId);
+          }
         });
       } else {
         console.log('No such document!');
@@ -165,7 +174,6 @@ export default {
           postId: postId,
           content: this.newComment.trim(),
           userId: currentUser.uid,
-          username: currentUser.displayName,
           timestamp: serverTimestamp()
         });
         this.newComment = '';
@@ -181,23 +189,25 @@ export default {
         const commentsQuery = query(collection(db, 'comments'), where('postId', '==', postId));
         const commentsSnapshot = await getDocs(commentsQuery);
 
-        const profilePicPromises = commentsSnapshot.docs
-          .filter(doc => doc.data().postId === postId)
-          .map(async doc => {
-            const data = doc.data();
+        const profilePicPromises = commentsSnapshot.docs.map(async doc => {
+          const data = doc.data();
+          const usernameSnapshot = await getDocs(query(collection(db, 'usernames'), where('userId', '==', data.userId)));
+          if (!usernameSnapshot.empty) {
+            const username = usernameSnapshot.docs[0].data().username;
             const storageRef = ref(storage, `ProfilePictures/${data.userId}`);
             const profilePic = await getDownloadURL(storageRef);
-            console.log(profilePic)
             const timestamp = data.timestamp.toDate();
-            const formattedTimestamp = this.calculateTimeDifference(timestamp);;
-            return { ...data, profilePic, formattedTimestamp };
-          });
+            const formattedTimestamp = this.calculateTimeDifference(timestamp);
+            return { ...data, username, profilePic, formattedTimestamp };
+          } else {
+            console.log('No matching username found for userId:', data.userId);
+            return null;
+          }
+        });
 
         const commentsWithProfilePics = await Promise.all(profilePicPromises);
 
-        this.comments = commentsWithProfilePics.map(comment => ({
-          ...comment,
-        })).sort((a, b) => b.timestamp - a.timestamp);
+        this.comments = commentsWithProfilePics.filter(comment => comment !== null).sort((a, b) => b.timestamp - a.timestamp);
 
       } catch (error) {
         console.error('Error loading comments:', error);
