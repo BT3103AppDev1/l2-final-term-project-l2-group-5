@@ -12,10 +12,24 @@
                         </div>
                         <div class="rounded-input" id="email-div">
                             <label class="email-label" for="email-input">Email</label><br>
-                            <input id="email-input" type="text" placeholder="Email..." v-model="email" :readonly="!editing" />
+                            <input id="email-input" type="text" placeholder="Email..." v-model="email" readonly />
                         </div>
                     </div>
-                    <div id="profilepic-div">
+                    <!-- Profile picture editing -->
+                    <div v-if="editing" class="profile-picture-div">
+                        <img :src="userProfilePictureUrl" alt="profile-picture" id="profile-picture-preview-edit">
+                        <div id="default-image-display">
+                            <div v-for="(image, index) in defaultPictureUrl" :key="index" class="default-image">
+                                <img :src="image" @click="selectImage(image, index)">
+                            </div>
+                        </div>
+                        <div id="image-upload-div">
+                            <p>Or Upload Your Own!</p>
+                            <!-- Input for uploading a new picture -->
+                            <input type="file" @change="handleImageUpload" accept="image/*">
+                        </div>
+                    </div>
+                    <div v-else id="profilepic-div">
                         <img :src="userProfilePictureUrl" alt="profile-picture" id="profile-picture-preview">
                     </div>
                 </div>
@@ -24,6 +38,10 @@
                         <label class="bio-label" for="bio-input">Bio</label><br>
                         <textarea id="bio-input" rows="6" placeholder="Bio..." v-model="bio" :readonly="!editing" ></textarea>
                     </div>
+                </div>
+                <div id="button-div">
+                    <button id="editButton" @click="toggleEdit">{{ editing ? 'Save' : 'Edit' }}</button>
+                    <button v-if="editing" id="editButton" @click="cancel">Cancel</button>
                 </div>
             </div>
         </div>
@@ -61,6 +79,23 @@
     width: 100%;
     padding-left: 5%;
 }
+#button-div {
+    width: 100%;
+}
+#button-div button {
+    background-color: #436850;
+    border: none;
+    border-radius: 10px;
+    width: 15%;
+    height: 40px;
+    padding: 10px;
+    color: white;
+    text-align: center;
+    display: block;
+    margin-left: 5%;
+    cursor: pointer;
+    float: left;
+}
 .rounded-input {
   margin-bottom: 1%;
   width: 100%;
@@ -88,6 +123,39 @@
   margin-bottom: 10px;
   border-left: 10%;
   font-family: 'Nunito Sans', sans-serif;
+}
+.profile-picture-div {
+    width: 35%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+#default-image-display {
+    margin-top: 2%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+#image-upload-div p {
+    margin: 1%;
+}
+.default-image {
+    height: 85%;
+    width: 15%;
+    margin: 1%;
+}
+.default-image img {
+    height: 100%;
+    width: 100%;
+}
+#profile-picture-preview-edit {
+    height: 144px;
+    width: 144px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: inline-block;
 }
 #view {
     display: flex;
@@ -122,12 +190,18 @@
 <script>
 import { getStorage, ref, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-storage.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js";
-import { getFirestore, collection, getDocs, addDoc, where, query, limit, setDoc, doc } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js";
+import { getFirestore, collection, getDocs, updateDoc, where, query, doc } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js";
 import firebaseApp from "@/firebase";
 import { useRouter } from "vue-router";
 
-import Navbar from '@/components/Navbar.vue'
-import TopBar from '@/components/TopBar.vue'
+import Navbar from '@/components/Navbar.vue';
+import TopBar from '@/components/TopBar.vue';
+
+import Boy from "@/assets/profile-pictures/boy.png";
+import Girl from "@/assets/profile-pictures/girl.png";
+import Cat from "@/assets/profile-pictures/cat.png";
+import Dog from "@/assets/profile-pictures/dog.png";
+import Alien from "@/assets/profile-pictures/alien.png";
 
 const db = getFirestore(firebaseApp);
 const usernamesCollection = collection(db, "usernames");
@@ -138,6 +212,8 @@ export default {
     data() {
         return {
             pageName: "Profile",
+            oldUsername: "",
+            oldBio: "",
             username: "",
             email: "",
             bio: "",
@@ -146,8 +222,21 @@ export default {
             userProfileDocId: null,
             userProfileDoc: null,
             userProfileDocData: null,
-            userProfilePictureUrl: null,
             editing: false,
+            userProfilePictureUrl: null,
+            oldPicture: null,
+            isProfilePicDefault: false,
+            selectedIndex: null,
+            userFile: null,
+            defaultPictureRefs: [
+                "ProfilePictures/boy.png",
+                "ProfilePictures/girl.png",
+                "ProfilePictures/cat.png",
+                "ProfilePictures/dog.png",
+                "ProfilePictures/alien.png",
+            ],
+            defaultFiles: [Boy, Girl, Cat, Dog, Alien],
+            defaultPictureUrl: [],
         }
     },
     components: {
@@ -157,6 +246,99 @@ export default {
     setup() {
         const router = useRouter();
         return { router };
+    },
+    methods: {
+        async toggleEdit() {
+            if (this.editing) {
+                console.log("trying to save new profile");
+                try {
+                    // Check if username is ok
+                    if (this.oldUsername != this.username) {
+                        const usernameQuery = query(
+                            usernamesCollection,
+                            where("username", "==", this.username)
+                        );
+                        const usernameSnapshot = await getDocs(usernameQuery);
+                        if (usernameSnapshot.size > 0) {
+                            alert("Username is already in use. Please use a different username.");
+                            this.username = this.oldUsername;
+                            return;
+                        }
+                    }
+                    // Update profile info
+                    const docRef = doc(usernamesCollection, this.userProfileDocId);
+                    await updateDoc(docRef, {
+                        username: this.username,
+                        email: this.email,
+                        bio: this.bio,
+                    })
+                    // Change profile picture
+                    if (this.oldPicture != this.userProfilePictureUrl) {
+                        if (this.isProfilePicDefault) {
+                            const response = await fetch(`${this.defaultFiles[this.selectedIndex]}`);
+                            const imageBlob = await response.blob();
+                            const fileRef = ref(storage, `ProfilePictures/${this.userId}`);
+                            const snapshot = await uploadBytes(fileRef, imageBlob);
+                            console.log("Uploaded a blob or file!", snapshot);
+                        } else {
+                            const fileRef = ref(storage, `ProfilePictures/${this.userId}`);
+                            const snapshot = await uploadBytes(fileRef, this.userFile);
+                            console.log("Uploaded a blob or file!", snapshot);
+                        }
+                    }
+                    // Change back mode after successful change
+                    this.oldUsername = this.username;
+                    this.oldBio = this.bio;
+                    this.oldPicture = this.userProfilePictureUrl;
+                    this.editing = !this.editing;
+                    window.location.reload();
+                } catch (error) {
+                    console.error(error);
+                }
+            } else {
+                console.log("going into edit mode");
+                this.editing = !this.editing;
+            }
+        },
+        cancel() {
+            console.log("cancel edit");
+            this.username = this.oldUsername;
+            this.bio = this.oldBio;
+            this.userProfilePictureUrl = this.oldPicture;
+            this.editing = !this.editing;
+        },
+        // Get default profile pictures
+        async fetchDefaultPictures() {
+            for (let defaultPicturePath of this.defaultPictureRefs) {
+                const defaultPictureRef = ref(storage, defaultPicturePath);
+                try {
+                    const url = await getDownloadURL(defaultPictureRef);
+                    this.defaultPictureUrl.push(url);
+                } catch (error) {
+                    console.error("Error fetching image URL:", error);
+                }
+            }
+            this.imageUrl = this.defaultPictureUrl[0];
+            this.selectedIndex = 0;
+        },
+        // Set the selected image URL
+        selectImage(imageUrl, index) {
+            this.userProfilePictureUrl = imageUrl;
+            this.selectedIndex = index;
+            this.isProfilePicDefault = true;
+        },
+        // User inputs profile picture
+        handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith("image/")) {
+                this.userFile = file;
+                this.userProfilePictureUrl = URL.createObjectURL(file);
+                this.isProfilePicDefault = false;
+            } else {
+                console.error("The selected file is not an image.");
+                this.userFile = null;
+            }
+        },
     },
     async mounted() {
         await new Promise((resolve, reject) => {
@@ -193,7 +375,9 @@ export default {
                 console.log("User's Profile Document:", this.userProfileDoc);
                 console.log("User's Profile Document ID:", this.userProfileDocId);
                 this.bio = this.userProfileDocData.bio;
+                this.oldBio = this.userProfileDocData.bio;
                 this.username = this.userProfileDocData.username;
+                this.oldUsername = this.userProfileDocData.username;
                 this.email = this.userProfileDocData.email;
                 // user has no Profile
             } else {
@@ -209,9 +393,12 @@ export default {
             const userProfilePictureUrl = await getDownloadURL(fileRef);
             console.log("user profile picture ref: " + userProfilePictureUrl);
             this.userProfilePictureUrl = userProfilePictureUrl;
+            this.oldPicture = userProfilePictureUrl;
         } catch (error) {
             console.log(error);
         };
+        // Make default picture urls
+        this.fetchDefaultPictures();
     }
 }
 </script>
