@@ -543,6 +543,7 @@ export default {
       username: "",
       bio: "",
       userId: "",
+      userEmail: "",
       currentUser: null,
       defaultPictureUrl: [],
       defaultPictureRefs: [
@@ -579,6 +580,7 @@ export default {
         if (user) {
           // User is signed in.
           this.userId = user.uid;
+          this.userEmail = user.email;
           resolve();
         } else {
           // No user is signed in.
@@ -734,6 +736,7 @@ export default {
         await updateProfile(this.currentUser, { displayName: this.username });
         await addDoc(usernamesCollection, {
           userId: this.userId,
+          email: this.userEmail,
           username: this.username,
           bio: this.bio,
         });
