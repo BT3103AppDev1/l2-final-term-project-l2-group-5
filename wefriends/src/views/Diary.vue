@@ -4,8 +4,10 @@
     <div id="right-side">
       <TopBar :pageName="pageName" id="topbar" />
       <div id="content">
-        <div id="quote-header">
-          <h1>{{ quote }}</h1>
+        <div class="quote-header">
+          <img src="../assets/diary/img1.png" alt="Left Image" class="left-image">
+          <h1 class="title">{{ quote }}</h1>
+          <img src="../assets/diary/img2.png" alt="Right Image" class="right-image">
         </div>
         <div id="diary-container">
           <div id="entry">
@@ -16,13 +18,31 @@
               <h3>Selected Date: {{ formatDate(selectedDate) }}</h3>
             </div>
             <div id="inner-container">
-              <div v-if="entry && entry !== 'Select a date to view your diary entry'" id="entries-list">
+              <div v-if="entry" id="entries-list">
                 <h3>Reflections for the Day:</h3>
                 <p id="entryContainer">{{ entry }}</p>
                 <div id="buttonsContainer">
                   <button id="edit-button" @click="edit">Edit</button>
-                  <button id="delete-button" @click="confirmDelete">Delete</button>
+                  <button id="delete-button" @click="confirmDelete">
+                    Delete
+                  </button>
                 </div>
+                <Confirmation
+                  v-if="showDeleteModal"
+                  :isVisible="showDeleteModal"
+                  title="Confirm Delete"
+                  message="Are you sure you want to delete this entry?"
+                  @confirm="remove"
+                  @cancel="cancelDelete"
+                />
+                <Confirmation
+                v-if="showSaveModal"
+                :isVisible="showSaveModal"
+                title="Confirm Save"
+                message="Are you sure you want to save this entry?"
+                @confirm="save"
+                @cancel="cancelSave"
+              />
               </div>
               <div v-else>
                 <h3>How was your day?</h3>
@@ -34,9 +54,9 @@
                     ></textarea>
                   </form>
                 </div>
-                <button id="add-button" @click="confirmSave">Save</button>
+                <button id="add-button" @click="proceedSave">Save</button>
               </div>
-            </div> 
+            </div>
           </div>
         </div>
       </div>
@@ -76,7 +96,6 @@
   border: none;
   border-radius: 10px;
   width: 20%;
-  height: 40px;
   padding: 10px;
   color: white;
   text-align: center;
@@ -98,22 +117,23 @@
   cursor: pointer;
 }
 
-#quote-header {
-  position: relative;
-  max-width: 90%;
-  background-color: #436850;
-  border-radius: 25px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin: auto;
-  margin-top: 20px;
-  margin-bottom: 20px;
-  height: 20%;
+.quote-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  font-family: Arial, sans-serif;
-  color: white;
+  width: 95%;
+  margin: auto;
+  background-color: #436850;
+  border-radius: 19px;
+  height: 30%;
+  margin-top: 2.5%;
+}
+
+.title {
   text-align: center;
+  color: white;
+  font-size: 32px;
+  line-height: 1.1;
 }
 
 .quote {
@@ -127,23 +147,32 @@
 #diary-container {
   display: flex;
   justify-content: space-between;
-  height: 70%;
+  height: 60%;
 }
 
 #entry {
   flex: 2;
-  padding-left: 5%;
-  padding-right: 5%;
+  padding-left: 2.5%;
+  padding-right: 2.5%;
 }
 
 #current-entry {
   flex: 1;
   background-color: white;
   border-top-right-radius: 25px;
-  margin-right: 5%;
+  margin-right: 2.5%;
   text-align: left;
+  margin-top: 1.5%;
   padding: 2.5%;
   height: 90%;
+}
+
+.left-image,
+.right-image {
+    margin-left: 5%;
+    width: auto;
+    height: 100px;
+    margin-right: 5%;
 }
 
 #entryContainer {
@@ -151,7 +180,7 @@
   border: 1px solid black;
   border-radius: 10px;
   background-color: #fbfada;
-  height: 30vh;
+  height: 20vh;
   overflow-y: auto;
 }
 
@@ -159,7 +188,7 @@
   padding: 20px;
   background-color: #fbfada;
   border-top-right-radius: 25px;
-  height: 80%;
+  height: 75%;
 }
 
 .text-input {
@@ -203,6 +232,7 @@ import DiaryTest from "@/components/DiaryTest.vue";
 import Calendar from "@/components/Calendar.vue";
 import firebaseApp from "@/firebase";
 import { getAuth } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js";
+import Confirmation from "@/components/Confirmation.vue";
 
 import {
   getFirestore,
@@ -233,6 +263,9 @@ export default {
       docId: "",
       tempEntry: "",
       entryId: "",
+      showDeleteModal: false,
+      showSaveModal: false,
+      description: "",
     };
   },
 
@@ -247,25 +280,30 @@ export default {
     TopBar,
     DiaryTest,
     Calendar,
+    Confirmation,
   },
 
   methods: {
     confirmDelete() {
-    if (confirm("Are you sure you want to delete this diary entry?")) {
-      this.remove();
-    }
-  },
-confirmSave() {
-    if (confirm("Are you sure you want to save this diary entry?")) {
-      this.save();
-      this.tempEntry = "";
-    } else {
+      this.showDeleteModal = true;
+    },
+    confirmSave() {
+      console.log("confirming save");
+      this.showSaveModal = true;
+      console.log(this.showSaveModal);
+
+    },
+    cancelSave() {
       this.entry = this.tempEntry;
       this.tempEntry = "";
-    }
-},
+      this.showSaveModal = false;
+    },
     handleDateSelected(date) {
       this.selectedDate = date;
+    },
+    proceedSave() {
+      this.save();
+      this.tempEntry = "";
     },
 
     formatDate(value) {
@@ -294,11 +332,12 @@ confirmSave() {
       return formattedDate;
     },
     async save() {
+      console.log("saving");
       const diaryEntry = {
         Title: this.formatDateFirebase(this.selectedDate),
         Description: this.description,
       };
-     
+
       const db = getFirestore();
       const diaryCollectionRef = collection(
         db,
@@ -327,21 +366,20 @@ confirmSave() {
         }
       } else {
         try {
-        await addDoc(diaryCollectionRef, diaryEntry);
-        console.log("Entry saved successfully");
-        this.entry = this.description;
-        this.description = "";
-        await this.checkUserPost();
-      } catch (error) {
-        console.error("Error saving document: ", error);
+          await addDoc(diaryCollectionRef, diaryEntry);
+          console.log("Entry saved successfully");
+          this.entry = this.description;
+          this.description = "";
+          await this.checkUserPost();
+        } catch (error) {
+          console.error("Error saving document: ", error);
+        }
       }
-      }
-
-
     },
 
     async remove() {
-      console.log("deleting")
+      console.log("deleting");
+      this.showDeleteModal = false;
       const diaryEntriesRef = collection(db, "usernames", this.docId, "diary");
       const q = query(
         diaryEntriesRef,
@@ -352,11 +390,11 @@ confirmSave() {
 
       if (!querySnapshot.empty) {
         console.log("Document found with the specified criteria.");
-       
+
         const documentToDelete = querySnapshot.docs[0];
         const subDocId = documentToDelete.id;
         const toBeDeleted = doc(db, "usernames", this.docId, "diary", subDocId);
-        console.log("HGELP")
+        console.log("HGELP");
         try {
           await deleteDoc(toBeDeleted);
           this.entry = "";
@@ -368,12 +406,14 @@ confirmSave() {
         console.log("No document found with the specified criteria.");
       }
     },
-   
+
     async edit() {
       this.tempEntry = this.entry;
       this.description = this.entry;
       this.entry = "";
-
+    },
+    cancelDelete() {
+      this.showDeleteModal = false;
     },
 
     async checkUserPost() {
@@ -414,8 +454,8 @@ confirmSave() {
     try {
       this.entry = await this.checkUserPost();
     } catch (error) {
-      console.error('Failed to load user post:', error);
+      console.error("Failed to load user post:", error);
     }
-  }
+  },
 };
 </script>

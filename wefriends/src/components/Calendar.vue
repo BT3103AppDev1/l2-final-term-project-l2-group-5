@@ -40,6 +40,9 @@
 
 <script>
 export default {
+  props: {
+    id: String
+  },
   emits: ["date-selected"],
   data() {
     const today = new Date();
@@ -196,6 +199,11 @@ export default {
   background-color: #f9f9f9; /* different background for empty cells */
 }
 
+.current {
+  color: white;
+  background-color: #436850;
+  }
+
 .selected {
   background-color: #12372a;
   color: white;
@@ -213,17 +221,17 @@ export default {
   width: 30%; /* Adjust to fit header width */
 }
 
-.button {
+#button {
   border: none;
   background-color: #fff;
   cursor: pointer;
   padding: 5px 10px;
   margin: 0 5px;
-  border-radius: 5px; /* Rounded corners for buttons */
+  border-radius: 50%; /* Rounded corners for buttons */
   transition: background-color 0.3s, transform 0.2s; /* Smooth transition for interaction */
 }
 
-.button:hover {
+#button:hover {
   background-color: #12372a;
   color: #fff;
   transform: scale(1.05); /* Slight increase in size on hover */
