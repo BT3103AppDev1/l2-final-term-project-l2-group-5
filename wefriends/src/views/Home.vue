@@ -55,16 +55,9 @@
                       </option>
                     </select>
                   </div>
-                  <ul>
-                    <li
-                      v-for="(item, index) in topPosts"
-                      :key="index"
-                      class="post-title-box"
-                    >
-                      <p>{{ item.title }}</p>
-                      {{ truncateText(item.body, 300) }}
-                    </li>
-                  </ul>
+                </div>
+                <div class="postDisplayContainer">
+                  <PostDisplay :displayedPosts="displayedPosts" />
                 </div>
               </div>
             </div>
@@ -146,6 +139,17 @@
 </template>
 
 <style scoped>
+
+.post-content {
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.truncated {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 /* Create Profile Styles */
 #left-half {
   position: absolute;
@@ -154,6 +158,33 @@
   height: 150%;
   background-color: #436850;
   padding: 20px;
+}
+
+.tag-container {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.tag {
+  padding: 5px 10px;
+  border-radius: 20px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: white;
+}
+
+.Happy {
+  background-color: #4caf50;
+}
+
+.Sad {
+  background-color: #ffc0cb;
+}
+
+.Neutral {
+  background-color: #4682b4;
 }
 
 #left-half img {
@@ -434,7 +465,6 @@
 #post-container {
   flex: 2;
   margin-right: 2.5%;
-  text-align: center;
 }
 
 .prompt-img {
@@ -499,6 +529,7 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: -5;
 }
 
 #dropdown {
@@ -524,6 +555,8 @@ ul {
 </style>
 
 <script>
+import PostDisplay from "@/components/PostDisplay.vue";
+
 import firebaseApp from "@/firebase";
 import {
   getFirestore,
@@ -533,6 +566,7 @@ import {
   where,
   query,
   limit,
+  orderBy,
   setDoc,
   doc,
 } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js";
@@ -569,7 +603,7 @@ export default {
       selectedOption: "option1",
       options: [
         { value: "option1", text: "Past 24 Hours" },
-        { value: "option2", text: "Past 1 Day" },
+        { value: "option2", text: "Past 7 Days" },
       ],
       topPosts: [],
       userProfileDocId: null,
@@ -605,6 +639,11 @@ export default {
   computed: {
     fieldsFilled() {
       return !(this.username && this.imageUrl && this.bio);
+    },
+    displayedPosts() {
+      console.log("hi");
+      console.log(this.topPosts);
+      return this.topPosts;
     },
   },
   setup() {
@@ -655,16 +694,25 @@ export default {
     }
 
     try {
+      let timeRangeStart;
+
+      // Current time
+      const now = new Date();
+
+      if (this.selectedOption === 'option1') {
+        // For option1, set timeRangeStart to 24 hours before now
+        timeRangeStart = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+      } else if (this.selectedOption === 'option2') {
+        // For option2, set timeRangeStart to 7 days (1 week) before now
+        timeRangeStart = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+      }
+      console.log(this.selectedOption);
       const querySnapshot = await getDocs(
-        query(collection(db, "posts"), limit(3))
+        query(collection(db, "posts"),
+        orderBy("upvotes", "desc"), limit(2))
       );
       querySnapshot.forEach((doc) => {
-        const postData = {
-          body: doc.data().body,
-          tag: doc.data().tag,
-          timestamp: doc.data().timestamp.toDate(),
-          title: doc.data().title,
-        };
+        const postData = doc.data();
         this.topPosts.push(postData);
       });
     } catch (error) {
@@ -684,7 +732,6 @@ export default {
     }
     await this.checkForTodaysEntry();
     this.fetchQuotes();
-
   },
   methods: {
     async checkForTodaysEntry() {
@@ -712,11 +759,6 @@ export default {
       } catch (error) {
         console.error("Error fetching today's entry:", error);
       }
-    },
-
-    truncateText(text, length) {
-      if (text.length <= length) return text;
-      return text.substring(0, length) + "...";
     },
 
     async save() {
@@ -878,6 +920,7 @@ export default {
     Navbar,
     TopBar,
     Confirmation,
+    PostDisplay,
   },
 };
 </script>
