@@ -48,7 +48,7 @@
         <div id="video">
             <h1>How WeFriends Work</h1>
             <p>Watch our demo below</p>
-            <iframe width="80%" height="550" src="https://www.youtube.com/embed/VIDEO_ID" frameborder="0"
+            <iframe class="video-youtube" src="https://www.youtube.com/embed/VIDEO_ID" frameborder="0"
                 allowfullscreen></iframe>
         </div>
 
@@ -97,7 +97,6 @@
 }
 
 #feature {
-    background-color: #436850;
     width: 90%;
     border-radius: 2.4rem;
     padding: 60px;
@@ -106,34 +105,39 @@
 
 #video {
     background-color: #e3e3e3;
-    width: 90%;
-    padding: 60px;
+    width: 100%;
     display: flex;
-    border-radius: 2.4rem;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    margin: 1% auto;
+    padding-bottom: 5%;
+    padding-top: 3%;
+}
+
+.video-youtube {
+    width: 70%;
+    height: 550px;
+    align-items: center;
 }
 
 #video h1 {
     margin-top: 0px;
-    font-size: 35px;
+    font-size: 48px;
     color: #000000;
     text-align: center;
+    margin-bottom: 1.5%;
 }
 
 #video p {
     margin-top: 0px;
-    font-size: 17px;
-    color: #80aa9a;
+    font-size: 20px;
+    color: #8C8D8C;
     text-align: center;
+    margin-bottom: 3%;
 }
 
 #contact {
     background-color: #012f2c;
-    border-radius: 2.4rem;
-    width: 90%;
+    width: 100%;
     padding: 60px;
     display: flex;
     justify-content: center;
@@ -146,7 +150,7 @@ body {
 }
 
 .image-container {
-    width: 80%;
+    width: 70%;
     opacity: 0;
     margin: 0 auto;
     padding-bottom: 50px;
@@ -160,7 +164,7 @@ body {
 }
 
 .text-container h1 {
-    font-size: 70px;
+    font-size: 60px;
     color: #12372A;
     text-align: center;
     width: 50%;
@@ -183,9 +187,9 @@ body {
 
 .image-container img {
     width: 100%;
-    max-height: 100%;
-    margin-top: 40px;
+    height: 50%;
     border-radius: 1000px;
+    transform: scale(0.9);
 }
 
 #brand {

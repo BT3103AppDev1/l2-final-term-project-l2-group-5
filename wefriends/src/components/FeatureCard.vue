@@ -26,7 +26,7 @@ export default {
   
 <style scoped>
 .feature-card {
-    border: 2px solid #020000;
+    border: 2px solid #65B583;
     margin: 10px;
     padding: 20px;
     width: calc(30% - 15px);
