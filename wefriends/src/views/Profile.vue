@@ -50,16 +50,19 @@
                         </div>
                         <!-- Chart -->
                         <div id="chart-component">
-                            <p id="chart-title">Activity Chart</p>
-                            <pie-chart :data="chartData" 
-                                :library="{ responsive: true, maintainAspectRatio: false }" 
-                                :height="'300px'"
-                                :colors="['#436850', '#FBFADA', '#CDECDD']"
-                                :round="0"
-                                suffix="%"
-                                legend="bottom"
-                            >
-                            </pie-chart>
+                            <div v-if="editing"></div>
+                            <div v-else>
+                                <p id="chart-title">Activity Chart</p>
+                                <pie-chart :data="chartData" 
+                                    :library="{ responsive: true, maintainAspectRatio: false }" 
+                                    :height="'300px'"
+                                    :colors="['#436850', '#FBFADA', '#CDECDD']"
+                                    :round="0"
+                                    suffix="%"
+                                    legend="bottom"
+                                >
+                                </pie-chart>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -402,15 +405,17 @@ export default {
                 const db = getFirestore();
                 const commentsQuery = query(collection(db, 'comments'), where('userId', '==', this.userId));
                 const postsQuery = query(collection(db, 'posts'), where('userId', '==', this.userId));
-                const userDocRef = doc(collection(db, 'usernames'), this.userId);
+                const userQuery = query(collection(db, 'usernames'), where('userId', '==', this.userId));
+                const userSnapshot = await getDocs(userQuery);
+                const userDocRef = userSnapshot.docs[0].ref;
                 const diaryQuery = query(collection(userDocRef, 'diary'));
-
+                
                 const [commentsSnapshot, postsSnapshot, diarySnapshot] = await Promise.all([
                     getDocs(commentsQuery),
                     getDocs(postsQuery),
                     getDocs(diaryQuery)
                 ]);
-
+                console.log(diarySnapshot);
                 const commentsCount = commentsSnapshot.size;
                 const postsCount = postsSnapshot.size;
                 const diaryCount = diarySnapshot.size;
