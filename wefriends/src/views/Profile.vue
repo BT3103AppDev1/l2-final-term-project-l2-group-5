@@ -4,7 +4,8 @@
         <div id="right-side">
             <TopBar :pageName="pageName" id="topbar" />
             <div id="content">
-                <div id="user-email-picture-div">
+                <!-- User information -->
+                <div id="user-email-bio-div">
                     <div id="user-email-div">
                         <div class="rounded-input" id="username-div">
                             <label class="profile-label" for="username-input">Username</label><br>
@@ -14,34 +15,53 @@
                             <label class="email-label" for="email-input">Email</label><br>
                             <input id="email-input" type="text" placeholder="Email..." v-model="email" readonly />
                         </div>
-                    </div>
-                    <!-- Profile picture editing -->
-                    <div v-if="editing" class="profile-picture-div">
-                        <img :src="userProfilePictureUrl" alt="profile-picture" id="profile-picture-preview-edit">
-                        <div id="default-image-display">
-                            <div v-for="(image, index) in defaultPictureUrl" :key="index" class="default-image">
-                                <img :src="image" @click="selectImage(image, index)">
+                        <div id="bio-div-div">
+                            <div class="rounded-input" id="bio-div">
+                                <label class="bio-label" for="bio-input">Bio</label><br>
+                                <textarea id="bio-input" rows="6" placeholder="Bio..." v-model="bio" :readonly="!editing" ></textarea>
                             </div>
                         </div>
-                        <div id="image-upload-div">
-                            <p>Or Upload Your Own!</p>
-                            <!-- Input for uploading a new picture -->
-                            <input type="file" @change="handleImageUpload" accept="image/*">
+                        <!-- Buttons -->
+                        <div id="button-div">
+                            <button id="editButton" @click="toggleEdit">{{ editing ? 'Save' : 'Edit' }}</button>
+                            <button v-if="editing" id="cancelButton" @click="cancel">Cancel</button>
                         </div>
                     </div>
-                    <div v-else id="profilepic-div">
-                        <img :src="userProfilePictureUrl" alt="profile-picture" id="profile-picture-preview">
+                    <!-- Profile picture and chart -->
+                    <div id="profile-picture-and-chart">
+                        <!-- Profile picture -->
+                        <div class="profile-picture-div">
+                            <div v-if="editing" class="profile-picture-editing">
+                                <img :src="userProfilePictureUrl" alt="profile-picture" id="profile-picture-preview-edit">
+                                <div id="default-image-display">
+                                    <div v-for="(image, index) in defaultPictureUrl" :key="index" class="default-image">
+                                        <img :src="image" @click="selectImage(image, index)">
+                                    </div>
+                                </div>
+                                <div id="image-upload-div">
+                                    <p>Or Upload Your Own!</p>
+                                    <!-- Input for uploading a new picture -->
+                                    <input type="file" @change="handleImageUpload" accept="image/*">
+                                </div>
+                            </div>
+                            <div v-else id="profilepic-div">
+                                <img :src="userProfilePictureUrl" alt="profile-picture" id="profile-picture-preview">
+                            </div>
+                        </div>
+                        <!-- Chart -->
+                        <div id="chart-component">
+                            <p id="chart-title">Activity Chart</p>
+                            <pie-chart :data="chartData" 
+                                :library="{ responsive: true, maintainAspectRatio: false }" 
+                                :height="'300px'"
+                                :colors="['#436850', '#FBFADA', '#CDECDD']"
+                                :round="0"
+                                suffix="%"
+                                legend="bottom"
+                            >
+                            </pie-chart>
+                        </div>
                     </div>
-                </div>
-                <div id="bio-div-div">
-                    <div class="rounded-input" id="bio-div">
-                        <label class="bio-label" for="bio-input">Bio</label><br>
-                        <textarea id="bio-input" rows="6" placeholder="Bio..." v-model="bio" :readonly="!editing" ></textarea>
-                    </div>
-                </div>
-                <div id="button-div">
-                    <button id="editButton" @click="toggleEdit">{{ editing ? 'Save' : 'Edit' }}</button>
-                    <button v-if="editing" id="editButton" @click="cancel">Cancel</button>
                 </div>
             </div>
         </div>
@@ -49,7 +69,17 @@
 </template>
 
 <style scoped>
-#user-email-picture-div {
+#chart-component {
+    margin-top: 15%;
+    margin-left: -19%;
+}
+#chart-title{
+    font-family: 'Nunito Sans', sans-serif;
+    font-size: large;
+    font-weight: bold;
+    text-align: center;
+}
+#user-email-bio-div {
     width: 100%;
     display: flex;
     margin-top: 3%;
@@ -58,15 +88,30 @@
     width: 60%;
     padding-left: 5%;
 }
+#profile-picture-and-chart {
+    margin-top: 1%;
+    display: flex;
+    width: 30%;
+    flex-direction: column;
+    align-items: flex-start;
+}
 #profilepic-div {
     width: 35%;
     display: flex;
     align-items: center;
     justify-content: center;
 }
+.profile-picture-editing {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    align-content:center;
+}
 #profile-picture-preview {
-    width: 216px;
-    height: 216px;
+    width: 184px;
+    height: 184px;
     border-radius: 50%;
     object-fit: cover;
     display: inline-block;
@@ -77,7 +122,11 @@
 }
 #bio-div {
     width: 100%;
-    padding-left: 5%;
+}
+#bio-input{
+    width:70%;
+    font-family: 'Nunito Sans', sans-serif;
+    font-size: medium;
 }
 #button-div {
     width: 100%;
@@ -86,15 +135,20 @@
     background-color: #436850;
     border: none;
     border-radius: 10px;
-    width: 15%;
+    width: 20%;
     height: 40px;
     padding: 10px;
     color: white;
     text-align: center;
     display: block;
-    margin-left: 5%;
+    margin-top:5%;
     cursor: pointer;
     float: left;
+    font-family: 'Nunito Sans', sans-serif;
+    font-size: medium;
+}
+#cancelButton {
+    margin-left:5%;
 }
 .rounded-input {
   margin-bottom: 1%;
@@ -113,6 +167,8 @@
   border: 1px solid #ccc;
   margin-bottom: 10px;
   border-left: 10%;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: medium;
 }
 .rounded-input textarea {
   border-radius: 10px;
@@ -151,8 +207,8 @@
     width: 100%;
 }
 #profile-picture-preview-edit {
-    height: 144px;
-    width: 144px;
+    height: 184px;
+    width: 184px;
     border-radius: 50%;
     object-fit: cover;
     display: inline-block;
@@ -193,6 +249,7 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.
 import { getFirestore, collection, getDocs, updateDoc, where, query, doc } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js";
 import firebaseApp from "@/firebase";
 import { useRouter } from "vue-router";
+import 'chartkick/chart.js'
 
 import Navbar from '@/components/Navbar.vue';
 import TopBar from '@/components/TopBar.vue';
@@ -237,6 +294,7 @@ export default {
             ],
             defaultFiles: [Boy, Girl, Cat, Dog, Alien],
             defaultPictureUrl: [],
+            chartData: [],
         }
     },
     components: {
@@ -339,6 +397,39 @@ export default {
                 this.userFile = null;
             }
         },
+        async fetchUserActivity() {
+            try {
+                const db = getFirestore();
+                const commentsQuery = query(collection(db, 'comments'), where('userId', '==', this.userId));
+                const postsQuery = query(collection(db, 'posts'), where('userId', '==', this.userId));
+                const userDocRef = doc(collection(db, 'usernames'), this.userId);
+                const diaryQuery = query(collection(userDocRef, 'diary'));
+
+                const [commentsSnapshot, postsSnapshot, diarySnapshot] = await Promise.all([
+                    getDocs(commentsQuery),
+                    getDocs(postsQuery),
+                    getDocs(diaryQuery)
+                ]);
+
+                const commentsCount = commentsSnapshot.size;
+                const postsCount = postsSnapshot.size;
+                const diaryCount = diarySnapshot.size;
+
+                const totalEntries = commentsCount + postsCount + diaryCount;
+
+                const commentsPercentage = (commentsCount / totalEntries) * 100;
+                const postsPercentage = (postsCount / totalEntries) * 100;
+                const diaryPercentage = (diaryCount / totalEntries) * 100;
+
+                this.chartData = [
+                    ['Comments', commentsPercentage],
+                    ['Posts', postsPercentage],
+                    ['Diary Entries', diaryPercentage]
+                ];
+            } catch (error) {
+                console.error('Error fetching user activity:', error);
+            }
+        },
     },
     async mounted() {
         await new Promise((resolve, reject) => {
@@ -358,7 +449,6 @@ export default {
         });
         // Check if User has a Profile
         try {
-            console.log(this.userId);
             const profileQuery = query(
                 usernamesCollection,
                 where("userId", "==", this.userId)
@@ -399,6 +489,8 @@ export default {
         };
         // Make default picture urls
         this.fetchDefaultPictures();
+        // Fetch user activity chart
+        this.fetchUserActivity();
     }
 }
 </script>

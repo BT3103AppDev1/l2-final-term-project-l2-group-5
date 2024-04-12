@@ -10,7 +10,7 @@
 
 <style scoped>
 #topbar {
-    background-color: white;
+    background-color: beige;
     display: flex;
 }
 
