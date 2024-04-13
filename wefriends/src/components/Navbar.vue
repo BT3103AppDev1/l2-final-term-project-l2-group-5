@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="container">
         <div class="nav-container">
             <div :class="{ 'nav-option': true, 'selected': $route.path === '/profile' }" @click="navigate('/profile')">
                 <img :src="profilePictureUrl" alt="profile-picture" class="profile-picture-preview">
@@ -44,6 +44,10 @@
 </template>
 
 <style scoped>
+.container{
+    background-color: white;
+}
+
 .nav-container {
     display: flex;
     flex-direction: column;

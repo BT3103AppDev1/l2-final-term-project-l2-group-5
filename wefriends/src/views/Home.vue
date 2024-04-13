@@ -7,20 +7,27 @@
         <div id="main">
           <div id="main-container">
             <div class="quote-container">
-              <p class="quote">{{ quote }}</p>
+              <p class="quote">{{ quote.text }} - {{ quote.author }}</p>
             </div>
             <div id="content-container">
               <div id="prompt-container">
                 <div v-if="!hasEntryToday" id="entry-exists">
                   <div id="daily-prompt">
                     <h1>Today's Prompt</h1>
-                    <img src="../assets/diary-prompt-img.png" alt="Diary prompt image" class="prompt-img" />
+                    <img
+                      src="../assets/home/pet-img.png"
+                      alt="Diary prompt image"
+                      class="prompt-img"
+                    />
                     <p id="prompt-title">{{ prompt_title }}</p>
                     <p id="prompt-desc">{{ prompt_body }}</p>
                   </div>
                   <div class="text-input">
                     <form id="text-form">
-                      <textarea placeholder="Type Here..." v-model="description"></textarea>
+                      <textarea
+                        placeholder="Type Here..."
+                        v-model="description"
+                      ></textarea>
                       <button type="button" id="submit-button" @click="save">
                         >
                       </button>
@@ -28,7 +35,7 @@
                   </div>
                 </div>
                 <div v-else>
-                  <p>Today's entry:</p>
+                  <h2>Today's entry:</h2>
                   <div class="entry-display">
                     <p>{{ todaysEntry.Description }}</p>
                   </div>
@@ -39,17 +46,18 @@
                   <div id="post-header">
                     <h1 id="heading-text">Trending Discussion</h1>
                     <select v-model="selectedOption" id="dropdown">
-                      <option v-for="option in options" :value="option.value" :key="option.value">
+                      <option
+                        v-for="option in options"
+                        :value="option.value"
+                        :key="option.value"
+                      >
                         {{ option.text }}
                       </option>
                     </select>
                   </div>
-                  <ul>
-                    <li v-for="(item, index) in topPosts" :key="index" class="post-title-box">
-                      <p>{{ item.title }}</p>
-                      {{ truncateText(item.body, 300) }}
-                    </li>
-                  </ul>
+                </div>
+                <div class="postDisplayContainer">
+                  <PostDisplay :displayedPosts="displayedPosts" />
                 </div>
               </div>
             </div>
@@ -61,49 +69,87 @@
   <!-- User has no profile -->
   <div v-else>
     <div id="left-half">
-      <img src="../assets/bckgrnd-img.png" alt="bckgrnd-img">
+      <img src="../assets/bckgrnd-img.png" alt="bckgrnd-img" />
     </div>
     <div id="right-box">
       <h1 class="intro-text">Welcome!</h1>
       <h2 class="intro-text">Let's Create Your Profile!</h2>
       <div v-if="imageUrl" class="profile-picture-div">
-        <img :src="imageUrl" alt="Preview" class="profile-picture-preview">
+        <img :src="imageUrl" alt="Preview" class="profile-picture-preview" />
       </div>
       <div id="toggle-menu">
         <p>Choose a Profile Picture</p>
         <!-- List of default profile pictures -->
         <div id="default-image-display">
-          <div v-for="(image, index) in defaultPictureUrl" :key="index" class="default-image">
-            <img :src="image" @click="selectImage(image, index)">
+          <div
+            v-for="(image, index) in defaultPictureUrl"
+            :key="index"
+            class="default-image"
+          >
+            <img :src="image" @click="selectImage(image, index)" />
           </div>
         </div>
         <p>Or Upload Your Own!</p>
         <!-- Input for uploading a new picture -->
-        <input type="file" @change="handleImageUpload" accept="image/*">
+        <input type="file" @change="handleImageUpload" accept="image/*" />
       </div>
       <form @submit.prevent="createProfile">
         <div class="rounded-input">
-          <label class="profile-label" for="username-input">Username:</label><br>
-          <input id="username-input" type="text" placeholder="Username..." v-model="username" />
+          <label class="profile-label" for="username-input">Username:</label
+          ><br />
+          <input
+            id="username-input"
+            type="text"
+            placeholder="Username..."
+            v-model="username"
+          />
         </div>
         <div class="rounded-input">
-          <label class="profile-label" for="bio-input">Bio:</label><br>
-          <textarea id="bio-input" rows="6" placeholder="Bio..." v-model="bio"></textarea>
+          <label class="profile-label" for="bio-input">Bio:</label><br />
+          <textarea
+            id="bio-input"
+            rows="6"
+            placeholder="Bio..."
+            v-model="bio"
+          ></textarea>
         </div>
-        <button type="submit" id="button" :disabled="fieldsFilled" :class="{ 'disabled-button': fieldsFilled }">Create
-          Profile</button>
+        <button
+          type="submit"
+          id="button"
+          :disabled="fieldsFilled"
+          :class="{ 'disabled-button': fieldsFilled }"
+        >
+          Create Profile
+        </button>
       </form>
       <div class="nav-option" @click="showModal = true">
-        <img src="@/assets/navbar/logout.png" alt="logout-icon">
+        <img src="@/assets/navbar/logout.png" alt="logout-icon" />
         <p>Logout</p>
       </div>
-      <Confirmation v-if="showModal" :isVisible="showModal" title="Confirm Logout"
-        message="Are you sure you want to log out?" @confirm="logout" @cancel="cancelModal" />
+      <Confirmation
+        v-if="showModal"
+        :isVisible="showModal"
+        title="Confirm Logout"
+        message="Are you sure you want to log out?"
+        @confirm="logout"
+        @cancel="cancelModal"
+      />
     </div>
   </div>
 </template>
 
 <style scoped>
+
+.post-content {
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.truncated {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 /* Create Profile Styles */
 #left-half {
   position: absolute;
@@ -112,6 +158,33 @@
   height: 150%;
   background-color: #436850;
   padding: 20px;
+}
+
+.tag-container {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.tag {
+  padding: 5px 10px;
+  border-radius: 20px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: white;
+}
+
+.Happy {
+  background-color: #4caf50;
+}
+
+.Sad {
+  background-color: #ffc0cb;
+}
+
+.Neutral {
+  background-color: #4682b4;
 }
 
 #left-half img {
@@ -189,8 +262,8 @@
   cursor: pointer;
 }
 #toggle-menu {
-    margin-top: 2%;
-    margin-bottom: 5%;
+  margin-top: 2%;
+  margin-bottom: 5%;
 }
 #toggle-menu p {
   margin: 0;
@@ -239,22 +312,22 @@
 }
 
 .nav-option {
-    display: flex;
-    align-items: center;
-    margin-top: 30%;
-    cursor: pointer;
-    justify-content: center;
-    width: 30%;
-    margin-left: 35%;
+  display: flex;
+  align-items: center;
+  margin-top: 30%;
+  cursor: pointer;
+  justify-content: center;
+  width: 30%;
+  margin-left: 35%;
 }
 .selected {
-    background-color: #436850;
-    color: white;
-    border-radius: 12px;
+  background-color: #436850;
+  color: white;
+  border-radius: 12px;
 }
 .nav-option:hover:not(.selected) {
-    background-color: #b8b8b8;
-    border-radius: 12px;
+  background-color: #b8b8b8;
+  border-radius: 12px;
 }
 
 .nav-option img {
@@ -298,11 +371,11 @@
 
 .quote-container {
   position: relative;
-  max-width: 90%;
   background-color: #fffee5;
   border-radius: 25px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin: auto;
+  margin-left: 2.5%;
+  margin-right: 2.5%;
   margin-top: 20px;
   margin-bottom: 20px;
   display: flex;
@@ -328,7 +401,7 @@
   flex-direction: column;
   align-items: flex-start;
   flex: 1;
-  margin-left: 5%;
+  margin-left: 2.5%;
   margin-right: 2.5%;
   padding: 20px;
   background-color: white;
@@ -345,7 +418,6 @@
   /* Adjust as needed */
   padding-right: 10px;
   text-align: justify;
-  ;
 }
 
 /* Adjusted scrollbar styles */
@@ -370,7 +442,6 @@
   /* Thumb color on hover */
 }
 
-
 #daily-prompt {
   display: flex;
   flex-direction: column;
@@ -393,8 +464,7 @@
 
 #post-container {
   flex: 2;
-  margin-right: 5%;
-  text-align: center;
+  margin-right: 2.5%;
 }
 
 .prompt-img {
@@ -460,6 +530,7 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: -5;
 }
 
 #dropdown {
@@ -485,6 +556,8 @@ ul {
 </style>
 
 <script>
+import PostDisplay from "@/components/PostDisplay.vue";
+
 import firebaseApp from "@/firebase";
 import {
   getFirestore,
@@ -494,6 +567,7 @@ import {
   where,
   query,
   limit,
+  orderBy,
   setDoc,
   doc,
 } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js";
@@ -511,7 +585,7 @@ import { useRouter } from "vue-router";
 
 import Navbar from "@/components/Navbar.vue";
 import TopBar from "@/components/TopBar.vue";
-import Confirmation from '@/components/Confirmation.vue';
+import Confirmation from "@/components/Confirmation.vue";
 
 import Boy from "@/assets/profile-pictures/boy.png";
 import Girl from "@/assets/profile-pictures/girl.png";
@@ -530,7 +604,7 @@ export default {
       selectedOption: "option1",
       options: [
         { value: "option1", text: "Past 24 Hours" },
-        { value: "option2", text: "Past 1 Day" },
+        { value: "option2", text: "Past 7 Days" },
       ],
       topPosts: [],
       userProfileDocId: null,
@@ -566,6 +640,11 @@ export default {
   computed: {
     fieldsFilled() {
       return !(this.username && this.imageUrl && this.bio);
+    },
+    displayedPosts() {
+      console.log("hi");
+      console.log(this.topPosts);
+      return this.topPosts;
     },
   },
   setup() {
@@ -616,28 +695,26 @@ export default {
     }
 
     try {
+      let timeRangeStart;
+
+      // Current time
+      const now = new Date();
+
+      if (this.selectedOption === 'option1') {
+        // For option1, set timeRangeStart to 24 hours before now
+        timeRangeStart = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+      } else if (this.selectedOption === 'option2') {
+        // For option2, set timeRangeStart to 7 days (1 week) before now
+        timeRangeStart = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+      }
+      console.log(this.selectedOption);
       const querySnapshot = await getDocs(
-        query(collection(db, "posts"), limit(3))
+        query(collection(db, "posts"),
+        orderBy("upvotes", "desc"), limit(2))
       );
       querySnapshot.forEach((doc) => {
-        const postData = {
-          body: doc.data().body,
-          tag: doc.data().tag,
-          timestamp: doc.data().timestamp.toDate(),
-          title: doc.data().title,
-        };
+        const postData = doc.data();
         this.topPosts.push(postData);
-      });
-    } catch (error) {
-      console.error(error);
-    }
-
-    try {
-      const querySnapshot = await getDocs(
-        query(collection(db, "quotes"), limit(1))
-      ); // apply some filter or some logic to get a new quote
-      querySnapshot.forEach((doc) => {
-        this.quote = doc.data().quote;
       });
     } catch (error) {
       console.error(error);
@@ -655,6 +732,7 @@ export default {
       console.error(error);
     }
     await this.checkForTodaysEntry();
+    this.fetchQuotes();
   },
   methods: {
     async checkForTodaysEntry() {
@@ -673,7 +751,7 @@ export default {
         if (!querySnapshot.empty) {
           const todaysEntry = querySnapshot.docs[0].data();
           this.todaysEntry = todaysEntry;
-          console.log(todaysEntry)
+          console.log(todaysEntry);
           this.hasEntryToday = true;
         } else {
           this.hasEntryToday = false;
@@ -682,11 +760,6 @@ export default {
       } catch (error) {
         console.error("Error fetching today's entry:", error);
       }
-    },
-
-    truncateText(text, length) {
-      if (text.length <= length) return text;
-      return text.substring(0, length) + "...";
     },
 
     async save() {
@@ -805,11 +878,50 @@ export default {
       this.selectedIndex = index;
       this.isProfilePicDefault = true;
     },
+    hashCode(s) {
+      let hash = 0;
+      for (let i = 0; i < s.length; i++) {
+        const char = s.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash &= hash; // Convert to 32bit integer
+      }
+      return hash;
+    },
+    fetchQuotes() {
+      fetch("https://type.fit/api/quotes")
+        .then((response) => response.json())
+        .then((data) => {
+          this.quotes = data;
+          this.getDailyQuote();
+        })
+        .catch((error) => {
+          console.error("Error fetching quotes:", error);
+          // Assign a fallback quote directly
+          this.quote = { text: "Don't be sad, be happy!", author: "Unknown" };
+        });
+    },
+    getDailyQuote() {
+      if (this.quotes.length > 0) {
+        const currentDate = new Date().toISOString().slice(0, 10);
+        const hashedDate = this.hashCode(currentDate);
+        const index = Math.abs(hashedDate) % this.quotes.length;
+        this.quote = this.quotes[index];
+        let quote = { ...this.quotes[index] };
+
+        // Check if the author exists and replace ", type.fit" with an empty string
+        if (quote.author) {
+          quote.author = quote.author.replace(", type.fit", "");
+        }
+
+        this.quote = quote;
+      }
+    },
   },
   components: {
     Navbar,
     TopBar,
-    Confirmation
+    Confirmation,
+    PostDisplay,
   },
 };
 </script>

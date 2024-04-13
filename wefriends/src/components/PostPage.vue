@@ -418,6 +418,7 @@ export default {
   line-height: 1.5;
   padding-left: 20px;
   padding-right: 20px;
+  width:80%;
 }
 
 .post-details {
