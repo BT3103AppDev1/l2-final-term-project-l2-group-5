@@ -45,7 +45,7 @@
 
 <style scoped>
 .container{
-    background-color: beige;
+    background-color: white;
 }
 
 .nav-container {
