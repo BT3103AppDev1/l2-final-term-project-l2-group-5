@@ -10,7 +10,8 @@
                 <div id="locations-map">
                     <div id="locations">
                         <input type="text" v-model="postalCode" class="postal-input" placeholder="Enter Postal Code">
-                        <button @click="fetchNearbyClinics">Search</button>
+                        <button @click="validatePostalCode">Search</button>
+                        <p v-if="!isValidPostalCode" class="error-message"><b>{{ errorMessage }}</b></p>
                         <ul class="clinic-list">
                             <li v-for="clinic in clinics" :key="clinic.place_id" @click="zoomToClinic(clinic)">
                                 <div class="box">
@@ -52,6 +53,8 @@ export default {
             infoWindow: null,
             quote:
             "Seeking assistance? Discover a network of support and resources near you.",
+            errorMessage: '',
+            isValidPostalCode: true,
         }
     },
     mounted() {
@@ -86,6 +89,16 @@ export default {
                 rawMarker.setMap(null);
             });
             this.markers = [];
+        },
+        validatePostalCode() {
+            const regex = /^\d{6}$/;
+            this.isValidPostalCode = regex.test(this.postalCode);
+            if (!this.isValidPostalCode) {
+                this.errorMessage = 'Please enter a valid 6-digit Singapore postal code.';
+            } else {
+                this.errorMessage = '';
+                this.fetchNearbyClinics();
+            }
         },
         fetchNearbyClinics() {
             this.clearMarkers();
@@ -188,7 +201,7 @@ export default {
 }
 
 #topbar {
-  height: 5%;
+    height: 5%;
 }
 
 #navbar {
@@ -261,7 +274,7 @@ export default {
     margin: 0px 7px 13px 15px;
     border-radius: 5px;
     padding: 6px;
-    width: 58%;
+    width: 50%;
     border: 0px;
 }
 
@@ -277,5 +290,12 @@ export default {
 .box:hover {
   /* Box shadow for "pop up" effect on hover */
   box-shadow: 0 6px 6px 0 rgba(0, 0, 0, 0.6);
+}
+
+.error-message {
+    color: red;
+    text-align: center;
+    font-size: larger;
+    margin: 0px 0px 0px 15px;
 }
 </style>

@@ -15,7 +15,7 @@
                         <img src="../assets/edu-ban2.png" alt="Right Image" class="right-image">
                     </div>
 
-                    <div class="container">
+                    <div class="dropdown-container">
                         <div class="box" :class="{ active: activeBox === 'about' }" data-box="about">
                             <div class="header" @click="toggleBox('about')" :class="{ active: activeBox === 'about' }">
                                 <span>About Mental Health</span>
@@ -317,7 +317,7 @@ export default {
     margin-right: 5%;
 }
 
-.container {
+.dropdown-container {
     flex: 1;
     width: 95%;
     margin: 0 auto;
