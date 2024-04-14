@@ -30,17 +30,17 @@
                 <p>Embarking on your health journey with WeFriends is as simple as 1, 2, 3!</p>
             </div>
             <div class="feature-cards-container">
-                <FeatureCard imageSrc="../src/assets/landing/book.png" altText="Diary Icon" title="Diary"
+                <FeatureCard :imageSrc="bookImage" altText="Diary Icon" title="Diary"
                     subtitle="Intuitive diary entries empowering you to be more introspective, and witness the power of your commitment to wellness." />
-                <FeatureCard imageSrc="../src/assets/landing/users.png" altText="Forum Icon" title="Forum"
+                <FeatureCard :imageSrc="usersImage" altText="Forum Icon" title="Forum"
                     subtitle="A community and support system of anonymised people who want to help each other through mental health challenges." />
-                <FeatureCard imageSrc="../src/assets/landing/pin.png" altText="Clinics Icon" title="Clinics"
+                <FeatureCard :imageSrc="pinImage" altText="Clinics Icon" title="Clinics"
                     subtitle="Clinics near you are displayed based on search of a postal code or location, for quick, easy and convenient access and information." />
-                <FeatureCard imageSrc="../src/assets/landing/info.png" altText="Education Icon" title="Education"
+                <FeatureCard :imageSrc="infoImage" altText="Education Icon" title="Education"
                     subtitle="Learn more about what mental wellness is about, how to prevent it and catch up on the latest research." />
-                <FeatureCard imageSrc="../src/assets/landing/bell.png" altText="Daily Prompts Icon" title="Daily Prompts"
+                <FeatureCard :imageSrc="bellImage" altText="Daily Prompts Icon" title="Daily Prompts"
                     subtitle="Answer a new daily prompt that encourages you to reflect and think about your day or a certain feeling and mood." />
-                <FeatureCard imageSrc="../src/assets/landing/chart.png" altText="Analysis Icon" title="Analysis"
+                <FeatureCard :imageSrc="chartImage" altText="Analysis Icon" title="Analysis"
                     subtitle="WeFriends generates statistics and analysis on your behaviour, providing you with insights on how you use our app." />
             </div>
         </div>
@@ -264,6 +264,12 @@ body {
 <script>
 
 import FeatureCard from '@/components/FeatureCard.vue';
+import bookImage from "@/assets/landing/book.png";
+import usersImage from "@/assets/landing/users.png";
+import pinImage from "@/assets/landing/pin.png";
+import infoImage from "@/assets/landing/info.png"
+import bellImage from "@/assets/landing/bell.png"
+import chartImage from "@/assets/landing/chart.png"
 
 export default {
     mounted() {
@@ -285,6 +291,16 @@ export default {
     components: {
         FeatureCard
     },
+    data() {
+        return {
+            bookImage: bookImage,
+            usersImage: usersImage,
+            pinImage: pinImage,
+            infoImage: infoImage,
+            bellImage: bellImage,
+            chartImage: chartImage
+        };
+    }
 }
 
 </script>
