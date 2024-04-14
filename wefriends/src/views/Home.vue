@@ -663,7 +663,8 @@ export default {
         } else {
           // No user is signed in.
           console.log("No user is signed in.");
-          reject(new Error("No user is signed in."));
+          this.$router.push("/");
+          return;
         }
       });
     });
