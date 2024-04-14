@@ -233,6 +233,8 @@ import Calendar from "@/components/Calendar.vue";
 import firebaseApp from "@/firebase";
 import { getAuth } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js";
 import Confirmation from "@/components/Confirmation.vue";
+import { useRouter } from "vue-router";
+const auth = getAuth(firebaseApp);
 
 import {
   getFirestore,
@@ -450,7 +452,26 @@ export default {
       return null;
     },
   },
+  setup() {
+    const router = useRouter();
+    return { router };
+  },
   async mounted() {
+    // Check if user is logged in
+    await new Promise((resolve, reject) => {
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            unsubscribe();
+            if (user) {
+                // User is signed in.
+                resolve();
+            } else {
+                // No user is signed in.
+                console.log("No user is signed in.");
+                this.$router.push("/");
+                return;
+            }
+        });
+    });
     try {
       this.entry = await this.checkUserPost();
     } catch (error) {

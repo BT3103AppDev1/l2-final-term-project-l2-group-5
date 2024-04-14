@@ -199,6 +199,9 @@ import firebaseApp from "../firebase.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js"
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js"
 const db = getFirestore(firebaseApp);
+import { getAuth } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js";
+import { useRouter } from "vue-router";
+const auth = getAuth(firebaseApp);
 
 export default {
     data() {
@@ -250,7 +253,26 @@ export default {
             }
         }
     },
-    mounted() {
+    setup() {
+        const router = useRouter();
+        return { router };
+    },
+    async mounted() {
+        // Check if user is logged in
+        await new Promise((resolve, reject) => {
+            const unsubscribe = auth.onAuthStateChanged((user) => {
+                unsubscribe();
+                if (user) {
+                    // User is signed in.
+                    resolve();
+                } else {
+                    // No user is signed in.
+                    console.log("No user is signed in.");
+                    this.$router.push("/");
+                    return;
+                }
+            });
+        });
         // Call getAbout method when the component is mounted
         this.getAbout();
         this.$nextTick(() => {
