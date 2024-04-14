@@ -51,6 +51,11 @@ import Navbar from '@/components/Navbar.vue'
 import TopBar from '@/components/TopBar.vue'
 import { getFirestore, collection, query, orderBy, onSnapshot } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
 
+import { getAuth } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js";
+import { useRouter } from "vue-router";
+import firebaseApp from "../firebase.js";
+const auth = getAuth(firebaseApp);
+
 export default {
   components: {
     PostModal,
@@ -144,6 +149,27 @@ export default {
 
   created() {
     this.fetchPosts();
+  },
+  setup() {
+        const router = useRouter();
+        return { router };
+    },
+  async mounted() {
+    // Check if user is logged in
+    await new Promise((resolve, reject) => {
+            const unsubscribe = auth.onAuthStateChanged((user) => {
+                unsubscribe();
+                if (user) {
+                    // User is signed in.
+                    resolve();
+                } else {
+                    // No user is signed in.
+                    console.log("No user is signed in.");
+                    this.$router.push("/");
+                    return;
+                }
+            });
+        });
   }
 };
 </script>

@@ -165,6 +165,21 @@ export default {
         return { router };
     },
     async mounted() {
+        // Check if user is logged in
+        await new Promise((resolve, reject) => {
+            const unsubscribe = auth.onAuthStateChanged((user) => {
+                unsubscribe();
+                if (user) {
+                    // User is signed in.
+                    resolve();
+                } else {
+                    // No user is signed in.
+                    console.log("No user is signed in.");
+                    this.$router.push("/");
+                    return;
+                }
+            });
+        });
         this.pageName = "Viewing Profile: " + this.username;
         // Check if User has a Profile
         try {
