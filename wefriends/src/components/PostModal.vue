@@ -2,22 +2,26 @@
   <div class="modal-wrapper" v-show="showModal">
     <div class="modal">
       <div class="modal-content">
-        <span class="close" @click="closeModal">X</span>
+        <div class="modal-header">
+          <span class="close" @click="closeModal">X</span>
+        </div>
+        <div class="create-header">Create Discussion</div>
         <div class="input-container">
-          <input type="text" v-model="title" placeholder="Title (Required)" class="rounded-input">
+          <input type="text" v-model="title" :maxlength="titleMaxLength" placeholder="Title (Required)" class="rounded-input">
         </div>
         <div class="input-container">
-          <textarea v-model="body" placeholder="Content (Required)" class="rounded-input" id="body"></textarea>
+          <textarea v-model="body" :maxlength="bodyMaxLength" placeholder="Content (Required)" class="rounded-input" id="body"></textarea>
         </div>
-        <div class="input-container">
-          <select v-model="selectedTag" class="rounded-input">
-            <option value="Happy">Happy</option>
-            <option value="Sad">Sad</option>
-            <option value="Neutral">Neutral</option>
-          </select>
+        <div class="tag-section">
+          <p class="tag-header">Tags (2 Max):</p>
+            <div class="tag-container">
+              <span v-for="tag in tags" :key="tag" :class="[tag, 'tag', { active: selectedTags.includes(tag), disabled: selectedTags.length >= 2 && !selectedTags.includes(tag) }]" @click="toggleTag(tag)">{{ tag }}</span>
+            </div>
         </div>
-        <button @click="createPost" class="create-button">Create Post</button>
-        <span class="error-msg" v-if="showErrorMessage">Title and Content are required fields.</span>
+        <div class="button-div">
+          <button @click="createPost" class="create-button">Create</button>
+          <span class="error-msg" v-if="showErrorMessage">Title and Content are required fields.</span>
+        </div>
       </div>
     </div>
   </div>
@@ -33,9 +37,12 @@ export default {
       showModal: false,
       title: '',
       body: '',
-      selectedTag: 'Happy',
+      selectedTags: [],
+      tags: ['Happy', 'Sad', 'Neutral', 'Rant', 'Tips', 'Help'],
       numberOfPosts: 0,
-      showErrorMessage: false
+      showErrorMessage: false,
+      titleMaxLength: 200,
+      bodyMaxLength: 2000
     };
   },
   async created() {
@@ -59,10 +66,21 @@ export default {
     resetFields() {
       this.title = '';
       this.body = '';
-      this.selectedTag = 'Happy';
+      this.selectedTags = [];
       this.showErrorMessage = false;
     },
-    
+    toggleTag(tag) {
+      if (this.selectedTags.includes(tag)) {
+        this.selectedTags = this.selectedTags.filter(t => t !== tag);
+      } else {
+        if (this.selectedTags.length < 2) {
+          this.selectedTags.push(tag);
+        } else {
+          // If already 2 tags selected, do nothing
+          return;
+        }
+      }
+    },
     async createPost() {
       if (this.title.trim() === '' || this.body.trim() === '') {
         this.showErrorMessage = true;
@@ -75,7 +93,9 @@ export default {
         id: (this.numberOfPosts + 1).toString(),
         title: this.title,
         body: this.body,
-        tag: this.selectedTag,
+        selectedTags: [],
+        tag1: this.selectedTags[0],
+        tag2: this.selectedTags.length === 2 ? this.selectedTags[1] : null,
         userId: currentUser.uid,
         username: currentUser.displayName,
         upvotes: 0,
@@ -113,34 +133,122 @@ export default {
 
 .modal {
   background-color: white;
-  width: 600px;
-  height: 320px;
+  width: 60%;
+  height: 58%;
   padding: 20px;
   border-radius: 10px;
+  border: 8px solid #ADBC9F;
 }
 
 .modal-content {
   position: relative;
-  padding-top:30px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.create-header {
+  color: #34503b;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: x-large;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 3%;
+  align-self: flex-end;
 }
 
 .close {
-  position: absolute;
-  top: -5px;
-  right: 0px;
   cursor: pointer;
   color: #34503b;
   font-family: 'Nunito Sans', sans-serif;
   font-size: medium;
   font-weight: bold;
+  align-self: flex-end;
 }
 
 .input-container {
   margin-bottom: 15px;
 }
 
+.input-container input[type="text"],
+.input-container textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 2px solid #ADBC9F;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: medium;
+}
+
+.tag {
+  display: inline-block;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  background-color: #ccc;
+  padding: 5px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.tag-section {
+  display: flex;
+  align-items: center;
+}
+
+.tag-header {
+  margin-right: 10px;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: medium;
+  font-weight: bold;
+}
+
+.tag-container {
+  align-self: flex-end;
+}
+
+.tag.active {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.tag.active.Help {
+  background-color: #ff4f4f;
+}
+
+.tag.active.Tips {
+  background-color: #f957fc;
+}
+
+.tag.active.Rant {
+  background-color: #ffa229;
+}
+
+.tag.active.Happy {
+  background-color: #4CAF50;
+}
+
+.tag.active.Sad {
+  background-color: #FFC0CB;
+}
+
+.tag.active.Neutral {
+  background-color: #4682B4;
+}
+
+.tag.disabled {
+  background-color: #dddddd;
+  color: #aaa;
+  cursor: not-allowed;
+}
+
+.tag.disabled:hover {
+  background-color: #ccc;
+}
+
 #body {
-  height:100px;
+  height:20vh;
 }
 
 .rounded-input {
@@ -153,6 +261,10 @@ export default {
   font-size: medium;
 }
 
+.button-div {
+  display: grid;
+}
+
 .create-button {
   background-color: #436850;
   color: white;
@@ -161,6 +273,9 @@ export default {
   border-radius: 5px;
   cursor: pointer;
   margin-top: 5px;
+  justify-self: flex-end;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: medium;
 }
 
 .create-button:hover {
@@ -169,6 +284,6 @@ export default {
 
 .error-msg {
   color: red;
-  margin-left: 20px
+  justify-self: center;
 }
 </style>
