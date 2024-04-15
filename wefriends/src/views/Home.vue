@@ -489,6 +489,7 @@
 .prompt-img {
   width: 100%;
   height: auto;
+  object-fit: contain;
 }
 
 .text-input {
@@ -737,6 +738,19 @@ export default {
     this.fetchQuotes();
   },
   methods: {
+    formatDateFirebase(dateString) {
+      const date = new Date(dateString);
+      const day = date.getDate();
+      const month = date.getMonth() + 1;
+      const year = date.getFullYear();
+
+      const formattedDay = day < 10 ? `0${day}` : day;
+      const formattedMonth = month < 10 ? `0${month}` : month;
+
+      const formattedDate = `${formattedDay}/${formattedMonth}/${year}`;
+
+      return formattedDate;
+    },
      getNDaysAgoTimestamp(days) {
       const date = new Date();
       date.setDate(date.getDate() - days);
@@ -770,7 +784,9 @@ export default {
     },
 
     async save() {
-      const title = new Date().toLocaleDateString();
+      let title = new Date().toLocaleDateString();
+      title = this.formatDateFirebase(title);
+
       const description = this.description;
       try {
         const entry = {
