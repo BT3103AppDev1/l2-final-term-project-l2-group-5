@@ -18,7 +18,7 @@
               <h3>Selected Date: {{ formatDate(selectedDate) }}</h3>
             </div>
             <div id="inner-container">
-              <div v-if="entry" id="entries-list">
+              <div class="yellowBoxElse" v-if="entry" id="entries-list">
                 <h3>Reflections for the Day:</h3>
                 <p id="entryContainer">{{ entry }}</p>
                 <div id="buttonsContainer">
@@ -44,7 +44,7 @@
                 @cancel="cancelSave"
               />
               </div>
-              <div v-else>
+              <div class="yellowBoxElse" v-else>
                 <h3>How was your day?</h3>
                 <div class="text-input">
                   <form id="text-form">
@@ -65,6 +65,11 @@
 </template>
 
 <style scoped>
+.yellowBoxElse {
+  text-align: left;
+  margin-top: -8%;
+}
+
 #view {
   display: flex;
   justify-content: space-around;
@@ -90,17 +95,28 @@
   height: 95%;
 }
 
-#add-button,
-#edit-button {
+#add-button {
   background-color: #436850;
   border: none;
   border-radius: 10px;
-  width: 20%;
   padding: 10px;
   color: white;
   text-align: center;
   display: block;
   margin: 10px auto;
+  cursor: pointer;
+}
+
+#edit-button {
+  background-color: #436850;
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  color: white;
+  text-align: center;
+  display: block;
+  margin: 10px;
+  margin-left: 30%;
   cursor: pointer;
 }
 
@@ -113,7 +129,8 @@
   color: white;
   text-align: center;
   display: block;
-  margin: 10px auto;
+  margin: 10px;
+  margin-right: 30%;
   cursor: pointer;
 }
 
@@ -163,7 +180,7 @@
   margin-right: 2.5%;
   text-align: left;
   margin-top: 1.5%;
-  padding: 2.5%;
+  padding: 2%;
   height: 90%;
 }
 

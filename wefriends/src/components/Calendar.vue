@@ -162,7 +162,6 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px;
   background: transparent;
   color: #12372a;
   font-weight: bolder;
