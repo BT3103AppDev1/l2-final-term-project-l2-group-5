@@ -738,20 +738,18 @@ export default {
     this.fetchQuotes();
   },
   methods: {
-    formatDateFirebase(inputDate) {
-      const parts = inputDate.split('/');
-      
-      // Extract the month, day, and year from the split parts
-      const month = parts[0];
-      const day = parts[1];
-      const year = parts[2];
+    formatDateFirebase(dateString) {
+      const date = new Date(dateString);
+      const day = date.getDate();
+      const month = date.getMonth() + 1;
+      const year = date.getFullYear();
 
-      // Pad the month and day with leading zeros if necessary
-      const formattedMonth = month.padStart(2, '0');
-      const formattedDay = day.padStart(2, '0');
+      const formattedDay = day < 10 ? `0${day}` : day;
+      const formattedMonth = month < 10 ? `0${month}` : month;
 
-      // Combine the formatted parts back into a date string
-      return `${formattedMonth}/${formattedDay}/${year}`;
+      const formattedDate = `${formattedDay}/${formattedMonth}/${year}`;
+
+      return formattedDate;
     },
      getNDaysAgoTimestamp(days) {
       const date = new Date();
@@ -759,7 +757,8 @@ export default {
       return date.getTime();
     },
     async checkForTodaysEntry() {
-      const title = new Date().toLocaleDateString();
+      let title = new Date().toLocaleDateString();
+      title = this.formatDateFirebase(title);
 
       const entriesRef = collection(
         db,
@@ -786,8 +785,11 @@ export default {
     },
 
     async save() {
-      let title = new Date().toLocaleDateString();
-      title = this.formatDateFirebase(title);
+      const title = new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
 
       const description = this.description;
       try {
