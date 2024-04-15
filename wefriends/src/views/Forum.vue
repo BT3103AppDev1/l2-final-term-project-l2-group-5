@@ -73,7 +73,7 @@ export default {
       currentPage: 1,
       pageSize: 3,
       totalPosts: 0,
-      tags: ['Happy', 'Sad', 'Neutral'],
+      tags: ['Happy', 'Sad', 'Neutral', 'Rant', 'Tips', 'Help'],
       tagFilters: []
     };
   },
@@ -87,7 +87,7 @@ export default {
         });
       }
       if (this.tagFilters.length > 0) {
-        filtered = filtered.filter(post => this.tagFilters.includes(post.tag));
+        filtered = filtered.filter(post => this.tagFilters.includes(post.tag1) || this.tagFilters.includes(post.tag2));
       }
       return filtered;
     },
@@ -330,6 +330,7 @@ button:disabled {
   border-radius: 20px;
   padding: 5px 10px;
   margin-right: 10px;
+  margin-bottom: 10px;
   cursor: pointer;
 }
 
@@ -347,6 +348,18 @@ button:disabled {
 
 .tag-toggle.active.Neutral {
   background-color: #4682B4;
+}
+
+.tag-toggle.active.Help {
+  background-color: #ff4f4f;
+}
+
+.tag-toggle.active.Tips {
+  background-color: #f957fc;
+}
+
+.tag-toggle.active.Rant {
+  background-color: #ffa229;
 }
 
 </style>

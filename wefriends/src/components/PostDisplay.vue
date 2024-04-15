@@ -6,7 +6,8 @@
           <h3>{{ post.title }}</h3>
           <p class="truncated">{{ truncateText(post.body) }}</p>
           <div class="tag-container">
-            <span class="tag" :class="post.tag">{{ post.tag }}</span>
+            <span class="tag" :class="post.tag1">{{ post.tag1 }}</span>
+            <span class="tag" :class="post.tag2">{{ post.tag2 }}</span>
           </div>
           <div class="score-container">
             <span class="score">Score: {{ calculateScore(post) }}</span>
@@ -140,5 +141,17 @@ h3 {
 
 .Neutral {
   background-color: #4682B4;
+}
+
+.Help {
+  background-color: #ff4f4f;
+}
+
+.Tips {
+  background-color: #f957fc;
+}
+
+.Rant {
+  background-color: #ffa229;
 }
 </style>
