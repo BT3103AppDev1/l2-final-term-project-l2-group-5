@@ -59,6 +59,9 @@
                 <div class="postDisplayContainer">
                   <PostDisplay :displayedPosts="displayedPosts" />
                 </div>
+                <div class="forum-prompt">
+                  <router-link to="/forum" class="forum-link">See More</router-link>
+              </div>
               </div>
             </div>
           </div>
@@ -67,7 +70,7 @@
     </div>
   </div>
   <!-- User has no profile -->
-  <div v-else>
+  <div v-if="noProfile">
     <div id="left-half">
       <img src="../assets/bckgrnd-img.png" alt="bckgrnd-img" />
     </div>
@@ -139,6 +142,22 @@
 </template>
 
 <style scoped>
+
+.forum-link {
+  background-color: #436850;
+  border: none;
+  border-radius: 10px;
+  padding: 5px 10px 5px 10px;
+  color: white;
+  text-align: center;
+  cursor: pointer;
+  float: right;
+  margin-right: 1.5%;
+}
+
+.forum-link:hover {
+  background-color: #12372a;
+}
 
 .post-content {
   margin-bottom: 10px;
@@ -567,8 +586,7 @@ import {
   query,
   limit,
   orderBy,
-  setDoc,
-  doc,
+  Timestamp,
 } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js";
 import {
   getAuth,
@@ -600,10 +618,11 @@ const storage = getStorage(firebaseApp);
 export default {
   data() {
     return {
-      selectedOption: "option1",
+      selectedOption: "option2",
       options: [
         { value: "option1", text: "Past 24 Hours" },
         { value: "option2", text: "Past 7 Days" },
+        { value: "option3", text: "Past 30 Days" },
       ],
       topPosts: [],
       userProfileDocId: null,
@@ -612,7 +631,8 @@ export default {
       quote: "",
       prompt_title: "",
       prompt_body: "",
-      profile: false,
+      profile: null,
+      noProfile: null,
       username: "",
       bio: "",
       userId: "",
@@ -636,6 +656,12 @@ export default {
       hasEntryToday: false,
     };
   },
+  watch: {
+  selectedOption(newOption) {
+    this.topPosts = [];
+    this.getTopPosts(newOption);
+  }
+  },
   computed: {
     fieldsFilled() {
       return !(this.username && this.imageUrl && this.bio);
@@ -651,6 +677,7 @@ export default {
     return { router };
   },
   async mounted() {
+    this.getTopPosts(this.selectedOption);
     // Retrieve User Details
     await new Promise((resolve, reject) => {
       const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -687,6 +714,7 @@ export default {
         this.userProfileDocId = userProfileDocId;
         // user has no Profile
       } else {
+        this.noProfile = true;
         this.fetchDefaultPictures();
         return;
       }
@@ -695,35 +723,9 @@ export default {
     }
 
     try {
-      let timeRangeStart;
-
-      // Current time
-      const now = new Date();
-
-      if (this.selectedOption === 'option1') {
-        // For option1, set timeRangeStart to 24 hours before now
-        timeRangeStart = new Date(now.getTime() - (24 * 60 * 60 * 1000));
-      } else if (this.selectedOption === 'option2') {
-        // For option2, set timeRangeStart to 7 days (1 week) before now
-        timeRangeStart = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
-      }
-      console.log(this.selectedOption);
-      const querySnapshot = await getDocs(
-        query(collection(db, "posts"),
-        orderBy("upvotes", "desc"), limit(2))
-      );
-      querySnapshot.forEach((doc) => {
-        const postData = doc.data();
-        this.topPosts.push(postData);
-      });
-    } catch (error) {
-      console.error(error);
-    }
-
-    try {
       const querySnapshot = await getDocs(
         query(collection(db, "prompts"), limit(1))
-      ); // apply some filter or some logic to get a new prompt
+      );
       querySnapshot.forEach((doc) => {
         this.prompt_title = doc.data().title;
         this.prompt_body = doc.data().body;
@@ -735,6 +737,11 @@ export default {
     this.fetchQuotes();
   },
   methods: {
+     getNDaysAgoTimestamp(days) {
+      const date = new Date();
+      date.setDate(date.getDate() - days);
+      return date.getTime();
+    },
     async checkForTodaysEntry() {
       const title = new Date().toLocaleDateString();
 
@@ -915,6 +922,45 @@ export default {
 
         this.quote = quote;
       }
+    },
+
+    async getTopPosts(selectedOption) {
+      console.log(selectedOption);
+      try {
+        if (selectedOption === 'option1') {
+          // For option1, set days to 1
+          this.days = 1;
+        } else if (selectedOption === 'option2') {
+          // For option2, set days to 7
+          this.days = 7;
+        } else if (selectedOption === 'option3') {
+          // For option3, set days to 30
+          this.days = 30;
+        }
+        const nDaysAgoDate = Timestamp.fromDate(new Date(Date.now() - this.days * 24 * 60 * 60 * 1000));
+        console.log(nDaysAgoDate);
+        const querySnapshot = await getDocs(
+          query(
+            collection(db, "posts"),
+            where("timestamp", ">=", nDaysAgoDate), // Filter for recent posts
+            orderBy("timestamp", "desc"), // You might want to order by timestamp or keep as is
+            orderBy("upvotes", "desc"), // Order by upvotes
+            limit(50) // Limit to the top 3 posts
+          )
+        );
+
+        const posts = querySnapshot.docs.map(doc => doc.data());
+        posts.sort((a, b) => b.upvotes - a.upvotes);
+        const topTwoPosts = posts.slice(0, 2);
+
+        topTwoPosts.forEach((doc) => {
+          const postData = doc
+          
+          this.topPosts.push(postData);
+        });
+        } catch (error) {
+        console.error(error);
+        }
     },
   },
   components: {
