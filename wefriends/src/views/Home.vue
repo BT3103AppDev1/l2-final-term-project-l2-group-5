@@ -487,7 +487,7 @@
 }
 
 .prompt-img {
-  width: auto;
+  width: 250px;
   height: auto;
   object-fit: contain;
 }
@@ -738,18 +738,20 @@ export default {
     this.fetchQuotes();
   },
   methods: {
-    formatDateFirebase(dateString) {
-      const date = new Date(dateString);
-      const day = date.getDate();
-      const month = date.getMonth() + 1;
-      const year = date.getFullYear();
+    formatDateFirebase(inputDate) {
+      const parts = inputDate.split('/');
+      
+      // Extract the month, day, and year from the split parts
+      const month = parts[0];
+      const day = parts[1];
+      const year = parts[2];
 
-      const formattedDay = day < 10 ? `0${day}` : day;
-      const formattedMonth = month < 10 ? `0${month}` : month;
+      // Pad the month and day with leading zeros if necessary
+      const formattedMonth = month.padStart(2, '0');
+      const formattedDay = day.padStart(2, '0');
 
-      const formattedDate = `${formattedDay}/${formattedMonth}/${year}`;
-
-      return formattedDate;
+      // Combine the formatted parts back into a date string
+      return `${formattedMonth}/${formattedDay}/${year}`;
     },
      getNDaysAgoTimestamp(days) {
       const date = new Date();
@@ -961,7 +963,7 @@ export default {
             where("timestamp", ">=", nDaysAgoDate), // Filter for recent posts
             orderBy("timestamp", "desc"), // You might want to order by timestamp or keep as is
             orderBy("upvotes", "desc"), // Order by upvotes
-            limit(50) // Limit to the top 3 posts
+            limit(50) // Limit to the op 3 posts
           )
         );
 
@@ -987,3 +989,4 @@ export default {
   },
 };
 </script>
+
