@@ -785,10 +785,10 @@ export default {
     },
 
     async save() {
-      const title = new Date().toLocaleDateString("en-US", {
+      const title = new Date().toLocaleDateString("en-GB", {
         year: "numeric",
-        month: "short",
-        day: "numeric",
+        month: "2-digit",
+        day: "2-digit",
       });
 
       const description = this.description;
