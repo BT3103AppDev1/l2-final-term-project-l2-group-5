@@ -757,8 +757,11 @@ export default {
       return date.getTime();
     },
     async checkForTodaysEntry() {
-      let title = new Date().toLocaleDateString();
-      title = this.formatDateFirebase(title);
+      let title = new Date().toLocaleDateString("en-GB", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
 
       const entriesRef = collection(
         db,
