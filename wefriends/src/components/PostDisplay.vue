@@ -3,7 +3,7 @@
     <a v-for="post in displayedPosts" :key="post.id" :href="'/post/' + post.id" class="post-link">
       <div class="post">
         <div class="post-content">
-          <h3>{{ post.title }}</h3>
+          <h3 class="post-title">{{ post.title }}</h3>
           <p class="truncated">{{ truncateText(post.body) }}</p>
           <div class="tag-container">
             <span class="tag" :class="post.tag1">{{ post.tag1 }}</span>
@@ -69,6 +69,10 @@ export default {
   margin-right: 10px;
   padding: 20px;
   background-color: #F5F5F5;
+}
+
+.post-title {
+  width: 90%;
 }
 
 .post-link {
