@@ -72,7 +72,7 @@ export default {
 }
 
 .post-title {
-  width: 90%;
+  width: 85%;
 }
 
 .post-link {

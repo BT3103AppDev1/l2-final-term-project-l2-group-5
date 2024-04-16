@@ -41,8 +41,8 @@ export default {
       tags: ['Happy', 'Sad', 'Neutral', 'Rant', 'Tips', 'Help'],
       numberOfPosts: 0,
       showErrorMessage: false,
-      titleMaxLength: 200,
-      bodyMaxLength: 2000
+      titleMaxLength: 90,
+      bodyMaxLength: 500
     };
   },
   async created() {

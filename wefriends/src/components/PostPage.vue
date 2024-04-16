@@ -9,7 +9,7 @@
           <h1 class="post-title">{{ post.title }}</h1>
           <p class="post-body">{{ post.body }}</p>
           <p class="post-details">
-            <span style="font-size: 1.1em; color:black;">Posted by </span>
+            <span style="font-size: 1.1em; color:black;">Posted by:</span><br>
             <router-link :to="'/profile/' + post.username" style="font-size: 1.1em; color:#436850; font-weight:bold">
               {{ post.username }}
             </router-link> <br>
@@ -400,10 +400,12 @@ export default {
   padding: 10px;
   margin-bottom: 10px;
   width:80%;
-  align-self: flex;
   margin-left:12.2%;
   border-radius: 20px;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .post-title {
@@ -412,6 +414,7 @@ export default {
   margin-bottom: 5px;
   margin-left: 20px;
   color: #436850;
+  width: 80%;
 }
 
 .post-body {
@@ -427,7 +430,6 @@ export default {
   padding-right: 20px;
   color: #777777;
   position: absolute;
-  top: 15%;
   right: 20px;
   font-size: 0.9em;
   text-align: right;
