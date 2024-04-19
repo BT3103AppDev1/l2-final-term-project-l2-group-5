@@ -33,7 +33,7 @@
     </div>
 
     <div v-if="registrationSuccess" class="success-message">
-      Registration successful! You can now log in.
+      Registration successful!
     </div>
 
     <!-- Firebase UI -->
@@ -156,16 +156,14 @@
 </style>
 
 <script>
-import { getAuth, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
-import { getFirestore, collection, addDoc, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js';
 import firebaseApp from "@/firebase";
 import firebase from '@/uifire.js';
 import 'firebase/compat/auth';
 import * as firebaseui from 'firebaseui';
 import 'firebaseui/dist/firebaseui.css';
+import router from '@/router';
 
-const db = getFirestore(firebaseApp);
-const usernamesCollection = collection(db, 'usernames');
 const auth = getAuth(firebaseApp);
 
 export default {
@@ -211,12 +209,10 @@ export default {
       }
 
       try {
-        const userCredential = await createUserWithEmailAndPassword(auth, this.email, this.password);
+      await createUserWithEmailAndPassword(auth, this.email, this.password);
+      await signInWithEmailAndPassword(auth, this.email, this.password);
 
-        this.registrationSuccess = true;
-        this.email = '';
-        this.password = '';
-        this.confirmPassword = '';
+      router.push('/home');
 
       } catch (error) {
         if (error.code === 'auth/email-already-in-use') {
