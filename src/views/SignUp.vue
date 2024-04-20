@@ -207,6 +207,12 @@ export default {
         this.confirmPassword = '';
         return;
       }
+      
+      const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.{8,})/;
+      if (!passwordRegex.test(this.password)) {
+        alert('Password needs to have at least 1 capital letter, 1 special character, and be at least 8 characters long.');
+        return;
+      }
 
       try {
       await createUserWithEmailAndPassword(auth, this.email, this.password);
