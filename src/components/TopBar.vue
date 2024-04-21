@@ -30,8 +30,8 @@
 }
 
 #logo {
-    width: 80%;
-    height: 80%;
+    width: 2vw;
+    height: 4vh;
     margin-right: 2%;
 }
 
