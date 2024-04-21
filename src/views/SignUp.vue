@@ -15,14 +15,17 @@
     <form @submit.prevent="register">
       <div class="rounded-input">
         <input type="email" placeholder="Email address..." v-model="email" />
+        <div class="error-message" v-if="errorMessages.invalidEmail">Email already in use. Please use a different email.</div>
       </div>
 
       <div class="rounded-input">
         <input type="password" placeholder="Password..." v-model="password" />
+        <div class="error-message" v-if="errorMessages.invalidPassword">Password needs at least 1 capital letter, 1 special character, and be at least 8 characters long.</div>
       </div>
 
       <div class="rounded-input">
         <input type="password" placeholder="Confirm Password..." v-model="confirmPassword" />
+        <div class="error-message" v-if="errorMessages.passwordsMismatch">Passwords do not match.</div>
       </div>
       
       <button type="submit" id="button" :disabled="fieldsFilled" :class="{'disabled-button':fieldsFilled}">Register</button>
@@ -60,6 +63,14 @@
 }
 .google:not(:empty)::after {
   margin-left: .25em;
+}
+
+.error-message {
+  color: red;
+  font-family: 'Nunito Sans', sans-serif;
+  font-weight: bold;
+  font-size: smaller;
+  margin-bottom: 2%;
 }
 
 #left-half {
@@ -173,6 +184,11 @@ export default {
       password: '',
       confirmPassword: '',
       registrationSuccess: false,
+      errorMessages: {
+        invalidEmail: false,
+        invalidPassword: false,
+        passwordsMismatch: false,
+      }
     };
   },
   mounted() {
@@ -201,8 +217,12 @@ export default {
   },
   methods: {
     async register() {
+      this.errorMessages.invalidEmail = false;
+      this.errorMessages.invalidPassword = false;
+      this.errorMessages.passwordsMismatch = false;
+
       if (this.password !== this.confirmPassword) {
-        alert('Passwords do not match!');
+        this.errorMessages.passwordsMismatch = true;
         this.password = '';
         this.confirmPassword = '';
         return;
@@ -210,7 +230,9 @@ export default {
       
       const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.{8,})/;
       if (!passwordRegex.test(this.password)) {
-        alert('Password needs to have at least 1 capital letter, 1 special character, and be at least 8 characters long.');
+        this.errorMessages.invalidPassword = true;
+        this.password = '';
+        this.confirmPassword = '';
         return;
       }
 
@@ -222,7 +244,7 @@ export default {
 
       } catch (error) {
         if (error.code === 'auth/email-already-in-use') {
-          alert('Email is already in use. Please use a different email address.');
+          this.errorMessages.invalidEmail = true;
           this.email = '';
           this.password = '';
           this.confirmPassword = '';
