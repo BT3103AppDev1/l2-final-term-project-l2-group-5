@@ -14,24 +14,28 @@
                 <div v-if="!hasEntryToday" id="entry-exists">
                   <div id="daily-prompt">
                     <h1>Today's Prompt</h1>
-                    <img
+                    <div class="img-container">
+                      <img
                       src="../assets/home/pet-img.png"
                       alt="Diary prompt image"
                       class="prompt-img"
                     />
+                    </div>
                     <p id="prompt-title">{{ prompt_title }}</p>
                     <p id="prompt-desc">{{ prompt_body }}</p>
                   </div>
-                  <div class="text-input">
-                    <form id="text-form">
-                      <textarea
-                        placeholder="Type Here..."
-                        v-model="description"
-                      ></textarea>
-                      <button type="button" id="submit-button" @click="save">
-                        >
-                      </button>
-                    </form>
+                  <div class="text-container">
+                    <div class="text-input">
+                      <form id="text-form">
+                        <textarea
+                          placeholder="Type Here..."
+                          v-model="description"
+                        ></textarea>
+                        <button type="button" id="submit-button" @click="save">
+                          >
+                        </button>
+                      </form>
+                    </div>
                   </div>
                 </div>
                 <div v-else>
@@ -389,7 +393,6 @@
 }
 
 .quote-container {
-  position: relative;
   background-color: #fffee5;
   border-radius: 25px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -417,8 +420,6 @@
 
 #prompt-container {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
   flex: 1;
   margin-left: 2.5%;
   margin-right: 2.5%;
@@ -426,8 +427,6 @@
   background-color: white;
   border-radius: 25px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  max-height: 70vh;
-  /* Set maximum height to 80% of viewport height */
 }
 
 .entry-display {
@@ -464,7 +463,11 @@
 #daily-prompt {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+}
+
+.img-container {
+  display: flex;
+  justify-content: center;
 }
 
 #prompt-title {
@@ -482,7 +485,7 @@
 }
 
 #post-container {
-  flex: 2;
+  width: 60%;
   margin-right: 2.5%;
 }
 
@@ -490,6 +493,10 @@
   width: 250px;
   height: auto;
   object-fit: contain;
+}
+
+.text-container {
+  margin-top: 15%;
 }
 
 .text-input {
@@ -559,19 +566,7 @@ button {
   background-color: #fff;
 }
 
-.post-title-box {
-  background-color: white;
-  padding: 10px 15px;
-  margin: 10px 0;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  list-style-type: none;
-}
 
-ul {
-  padding-left: 0;
-}
 </style>
 
 <script>
