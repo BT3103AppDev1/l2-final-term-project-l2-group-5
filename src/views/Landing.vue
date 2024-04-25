@@ -48,8 +48,10 @@
         <div id="video">
             <h1>How WeFriends Work</h1>
             <p>Watch our demo below</p>
-            <iframe class="video-youtube" src="https://www.youtube.com/embed/VIDEO_ID" frameborder="0"
-                allowfullscreen></iframe>
+            <iframe width="700" height="395" src="https://www.youtube.com/embed/_Jqms_BWrv4?si=LfLnNuiLwFm9dlVU&vq=hd1080&amp" title="YouTube video player" frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            <br>
+            <p>If video does not load, disable AdBlock and refresh the page</p>
         </div>
 
         <div id="contact">
