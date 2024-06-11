@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.9.15",
     "chart.js": "^4.4.2",
     "firebase": "^10.9.0",
     "firebaseui": "^6.1.0",
